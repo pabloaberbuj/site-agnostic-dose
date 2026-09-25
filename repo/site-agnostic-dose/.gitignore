@@ -9,10 +9,11 @@
 *.pt
 *.ckpt
 
-# Checkpoints y resultados
+# Checkpoints y predicciones (viven en la carpeta hermana SiteAgnostic\data\, no aca)
 checkpoints/
 predictions/
-results/
+# NOTA: repo/results/ SI va a git — son reportes livianos (profiling, auditorias),
+# no los resultados pesados por experimento (esos van a SiteAgnostic\data\results\).
 
 # DICOM (crudos y extraídos)
 dicom_raw/
