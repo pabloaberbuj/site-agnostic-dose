@@ -1,0 +1,98 @@
+# === sites/cyc.yaml — generado por convert_constraints.py ===
+# Revisar antes de usar. Rx inyectada de hojas de protocolo (externa a DICOM).
+site: CyC
+
+protocols:
+  - id: cyc_6996_594_5445
+    levels: [PTV_High, PTV_Mid, PTV_Low]
+    rx_gy: {PTV_High: 69.96, PTV_Mid: 59.4, PTV_Low: 54.45}
+
+targets:
+  PTV_High:
+    geometry_candidates: [PTV_High-04, PTV_High]   # orden de fallback (-04 primero)
+    goals:
+      - {metric: {type: D, param: 95.0, param_unit: pct_vol}, limit: {op: ge, value: 100.0, unit: pct_rx}, priority: 2}   # PTV_High-04: D95%
+      - {metric: {type: D, param: 99.0, param_unit: pct_vol}, limit: {op: ge, value: 95.0, unit: pct_rx}, priority: 2, tol: 93.0}   # PTV_High-04: D99%
+      - {metric: {type: Dmean}, limit: {op: le, value: 105.0, unit: pct_rx}, priority: 2}   # PTV_High-04: Dmedia
+      - {metric: {type: D, param: 10.0, param_unit: pct_vol}, limit: {op: le, value: 110.0, unit: pct_rx}, priority: 2}   # PTV_High-04: D10%
+      - {metric: {type: Dmax}, limit: {op: le, value: 115.0, unit: pct_rx}, priority: 2, unified_from: D0.035cm3}   # PTV_High-04: D0.035cm3
+  PTV_Mid:
+    geometry_candidates: [PTV_Mid-04, PTV_Mid]   # orden de fallback (-04 primero)
+    goals:
+      - {metric: {type: D, param: 95.0, param_unit: pct_vol}, limit: {op: ge, value: 100.0, unit: pct_rx}, priority: 2}   # PTV_Mid-04: D95%
+      - {metric: {type: D, param: 99.0, param_unit: pct_vol}, limit: {op: ge, value: 95.0, unit: pct_rx}, priority: 2, tol: 93.0}   # PTV_Mid-04: D99%
+  PTV_Low:
+    geometry_candidates: [PTV_Low-04, PTV_Low]   # orden de fallback (-04 primero)
+    goals:
+      - {metric: {type: D, param: 95.0, param_unit: pct_vol}, limit: {op: ge, value: 100.0, unit: pct_rx}, priority: 2}   # PTV_Low-04: D95%
+      - {metric: {type: D, param: 99.0, param_unit: pct_vol}, limit: {op: ge, value: 95.0, unit: pct_rx}, priority: 2, tol: 93.0}   # PTV_Low-04: D99%
+
+oars:
+  A_Carotid_L:
+      - {metric: {type: Dmax}, limit: {op: le, value: 40.0, unit: Gy}, priority: 4}   # A_Carotid_L: Dmax
+  A_Carotid_R:
+      - {metric: {type: Dmax}, limit: {op: le, value: 40.0, unit: Gy}, priority: 4}   # A_Carotid_R: Dmax
+  Bone_Mandible:
+      - {metric: {type: D, param: 2.0, param_unit: pct_vol}, limit: {op: le, value: 70.0, unit: Gy}, priority: 4, tol: 75.0}   # Bone_Mandible: D2%
+  BrachPlex_PRV5_L:
+      - {metric: {type: Dmax}, limit: {op: le, value: 66.0, unit: Gy}, priority: 3, tol: 70.0, unified_from: D0.035cm3}   # BrachPlex_PRV5_L: D0.035cm3
+  BrachPlex_PRV5_R:
+      - {metric: {type: Dmax}, limit: {op: le, value: 66.0, unit: Gy}, priority: 3, tol: 70.0, unified_from: D0.035cm3}   # BrachPlex_PRV5_R: D0.035cm3
+  Brain:
+      - {metric: {type: Dmax}, limit: {op: le, value: 68.0, unit: Gy}, priority: 3}   # Brain: Dmax
+      - {metric: {type: D, param: 1.0, param_unit: cm3}, limit: {op: le, value: 58.0, unit: Gy}, priority: 3}   # Brain: D1cm3
+  Brainstem_PRV05:
+      - {metric: {type: Dmax}, limit: {op: le, value: 54.0, unit: Gy}, priority: 1, tol: 60.0}   # Brainstem_PRV05: Dmax
+  Cochlea_L:
+      - {metric: {type: Dmean}, limit: {op: le, value: 45.0, unit: Gy}, priority: 4, tol: 55.0}   # Cochlea_L: Dmedia
+  Cochlea_R:
+      - {metric: {type: Dmean}, limit: {op: le, value: 45.0, unit: Gy}, priority: 4, tol: 55.0}   # Cochlea_R: Dmedia
+  Esophagus:
+      - {metric: {type: Dmean}, limit: {op: le, value: 30.0, unit: Gy}, priority: 4}   # Esophagus: Dmedia
+  Eye_L:
+      - {metric: {type: Dmean}, limit: {op: le, value: 35.0, unit: Gy}, priority: 3, conditional: true}   # Eye_L: Dmedia
+      - {metric: {type: Dmax}, limit: {op: le, value: 50.0, unit: Gy}, priority: 3, conditional: true}   # Eye_L: Dmax
+  Eye_R:
+      - {metric: {type: Dmean}, limit: {op: le, value: 35.0, unit: Gy}, priority: 3, conditional: true}   # Eye_R: Dmedia
+      - {metric: {type: Dmax}, limit: {op: le, value: 50.0, unit: Gy}, priority: 3, conditional: true}   # Eye_R: Dmax
+  Glnd_Lacrimal_L:
+      - {metric: {type: Dmax}, limit: {op: le, value: 25.0, unit: Gy}, priority: 4}   # Glnd_Lacrimal_L: Dmax
+  Glnd_Lacrimal_R:
+      - {metric: {type: Dmax}, limit: {op: le, value: 25.0, unit: Gy}, priority: 4}   # Glnd_Lacrimal_R: Dmax
+  Glnd_Submand_L:
+      - {metric: {type: Dmean}, limit: {op: le, value: 35.0, unit: Gy}, priority: 4}   # Glnd_Submand_L: Dmedia
+  Glnd_Submand_R:
+      - {metric: {type: Dmean}, limit: {op: le, value: 35.0, unit: Gy}, priority: 4}   # Glnd_Submand_R: Dmedia
+  Glnd_Thyroid:
+      - {metric: {type: V, param: 50.0, param_unit: Gy}, limit: {op: le, value: 60.0, unit: pct_vol}, priority: 4, conditional: true}   # Glnd_Thyroid: V50Gy
+      - {metric: {type: V, param: 60.0, param_unit: Gy}, limit: {op: le, value: 10.0, unit: cm3}, priority: 4, conditional: true}   # Glnd_Thyroid: V60Gy
+  Joint_TM_L:
+      - {metric: {type: D, param: 2.0, param_unit: pct_vol}, limit: {op: le, value: 70.0, unit: Gy}, priority: 4, tol: 75.0}   # Joint_TM_L: D2%
+  Joint_TM_R:
+      - {metric: {type: D, param: 2.0, param_unit: pct_vol}, limit: {op: le, value: 70.0, unit: Gy}, priority: 4, tol: 75.0}   # Joint_TM_R: D2%
+  Larynx:
+      - {metric: {type: Dmean}, limit: {op: le, value: 35.0, unit: Gy}, priority: 4}   # Larynx: Dmedia
+  Lens_L:
+      - {metric: {type: Dmax}, limit: {op: le, value: 6.0, unit: Gy}, priority: 3, tol: 15.0}   # Lens_L: Dmax
+  Lens_R:
+      - {metric: {type: Dmax}, limit: {op: le, value: 6.0, unit: Gy}, priority: 3, tol: 15.0}   # Lens_R: Dmax
+  Musc_Constrict:
+      - {metric: {type: Dmean}, limit: {op: le, value: 45.0, unit: Gy}, priority: 4, tol: 55.0}   # Musc_Constrict: Dmedia
+  OpticChiasm_PRV3:
+      - {metric: {type: Dmax}, limit: {op: le, value: 54.0, unit: Gy}, priority: 1, tol: 60.0}   # OpticChiasm_PRV3: Dmax
+  OpticNrv_PRV03_L:
+      - {metric: {type: Dmax}, limit: {op: le, value: 54.0, unit: Gy}, priority: 1, tol: 60.0}   # OpticNrv_PRV03_L: Dmax
+  OpticNrv_PRV03_R:
+      - {metric: {type: Dmax}, limit: {op: le, value: 54.0, unit: Gy}, priority: 1, tol: 60.0}   # OpticNrv_PRV03_R: Dmax
+  Oral_Cavity:
+      - {metric: {type: Dmean}, limit: {op: le, value: 40.0, unit: Gy}, priority: 4, tol: 50.0}   # Oral_Cavity: Dmedia
+  Parotid_L:
+      - {metric: {type: Dmean}, limit: {op: le, value: 26.0, unit: Gy}, priority: 4, conditional: true}   # Parotid_L: Dmedia
+      - {metric: {type: V, param: 30.0, param_unit: Gy}, limit: {op: le, value: 50.0, unit: pct_vol}, priority: 4, conditional: true}   # Parotid_L: V30Gy
+  Parotid_R:
+      - {metric: {type: Dmean}, limit: {op: le, value: 26.0, unit: Gy}, priority: 4, conditional: true}   # Parotid_R: Dmedia
+      - {metric: {type: V, param: 30.0, param_unit: Gy}, limit: {op: le, value: 50.0, unit: pct_vol}, priority: 4, conditional: true}   # Parotid_R: V30Gy
+  Pituitary:
+      - {metric: {type: Dmax}, limit: {op: le, value: 60.0, unit: Gy}, priority: 3, tol: 65.0, unified_from: D0.035cm3}   # Pituitary: D0.035cm3
+  SpinalCord_PRV05:
+      - {metric: {type: Dmax}, limit: {op: le, value: 45.0, unit: Gy}, priority: 1, tol: 50.0}   # SpinalCord_PRV05: Dmax

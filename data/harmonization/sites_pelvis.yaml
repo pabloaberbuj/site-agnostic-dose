@@ -1,0 +1,44 @@
+# === sites/pelvis.yaml — generado por convert_constraints.py ===
+# Revisar antes de usar. Rx inyectada de hojas de protocolo (externa a DICOM).
+site: Pelvis
+
+protocols:
+  - id: pelvis_5000
+    levels: [PTV_High]
+    rx_gy: {PTV_High: 50.0}
+
+targets:
+  PTV_High:
+    geometry_candidates: [PTV_High]   # orden de fallback (-04 primero)
+    goals:
+      - {metric: {type: V, param: 100.0, param_unit: pct_rx}, limit: {op: ge, value: 95.0, unit: pct_vol}, priority: 1}   # PTV_High: V100%
+      - {metric: {type: Dmax}, limit: {op: le, value: 107.0, unit: pct_rx}, priority: 3}   # PTV_High: Dmax
+
+oars:
+  Bladder:
+      - {metric: {type: V, param: 65.0, param_unit: Gy}, limit: {op: le, value: 50.0, unit: pct_vol}, priority: 2}   # Bladder: V65Gy
+      - {metric: {type: V, param: 70.0, param_unit: Gy}, limit: {op: le, value: 35.0, unit: pct_vol}, priority: 1}   # Bladder: V70Gy
+      - {metric: {type: V, param: 75.0, param_unit: Gy}, limit: {op: le, value: 25.0, unit: pct_vol}, priority: 1}   # Bladder: V75Gy
+      - {metric: {type: V, param: 80.0, param_unit: Gy}, limit: {op: le, value: 15.0, unit: pct_vol}, priority: 1}   # Bladder: V80Gy
+  Bowel_Small:
+      - {metric: {type: V, param: 45.0, param_unit: Gy}, limit: {op: le, value: 195.0, unit: cm3}, priority: 3}   # Bowel_Small: V45Gy
+  FemoralHead_L:
+      - {metric: {type: V, param: 40.0, param_unit: Gy}, limit: {op: le, value: 50.0, unit: pct_vol}, priority: 3}   # FemoralHead_L: V40Gy
+      - {metric: {type: V, param: 50.0, param_unit: Gy}, limit: {op: le, value: 20.0, unit: pct_vol}, priority: 3}   # FemoralHead_L: V50Gy
+      - {metric: {type: V, param: 65.0, param_unit: Gy}, limit: {op: le, value: 5.0, unit: pct_vol}, priority: 3}   # FemoralHead_L: V65Gy
+      - {metric: {type: Dmax}, limit: {op: le, value: 70.0, unit: Gy}, priority: 3}   # FemoralHead_L: Dmax
+  FemoralHead_R:
+      - {metric: {type: V, param: 40.0, param_unit: Gy}, limit: {op: le, value: 50.0, unit: pct_vol}, priority: 3}   # FemoralHead_R: V40Gy
+      - {metric: {type: V, param: 50.0, param_unit: Gy}, limit: {op: le, value: 20.0, unit: pct_vol}, priority: 3}   # FemoralHead_R: V50Gy
+      - {metric: {type: V, param: 65.0, param_unit: Gy}, limit: {op: le, value: 5.0, unit: pct_vol}, priority: 3}   # FemoralHead_R: V65Gy
+      - {metric: {type: Dmax}, limit: {op: le, value: 70.0, unit: Gy}, priority: 3}   # FemoralHead_R: Dmax
+  PenileBulb:
+      - {metric: {type: V, param: 48.0, param_unit: Gy}, limit: {op: le, value: 3.0, unit: cm3}, priority: 3}   # PenileBulb: V48Gy
+      - {metric: {type: Dmean}, limit: {op: le, value: 50.0, unit: Gy}, priority: 3}   # PenileBulb: Dmedia
+      - {metric: {type: Dmax}, limit: {op: le, value: 56.0, unit: Gy}, priority: 3}   # PenileBulb: Dmax
+  Rectum:
+      - {metric: {type: V, param: 50.0, param_unit: Gy}, limit: {op: le, value: 50.0, unit: pct_vol}, priority: 2}   # Rectum: V50Gy
+      - {metric: {type: V, param: 60.0, param_unit: Gy}, limit: {op: le, value: 35.0, unit: pct_vol}, priority: 1}   # Rectum: V60Gy
+      - {metric: {type: V, param: 65.0, param_unit: Gy}, limit: {op: le, value: 25.0, unit: pct_vol}, priority: 1}   # Rectum: V65Gy
+      - {metric: {type: V, param: 70.0, param_unit: Gy}, limit: {op: le, value: 20.0, unit: pct_vol}, priority: 1}   # Rectum: V70Gy
+      - {metric: {type: V, param: 75.0, param_unit: Gy}, limit: {op: le, value: 15.0, unit: pct_vol}, priority: 1}   # Rectum: V75Gy

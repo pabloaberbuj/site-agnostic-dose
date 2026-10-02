@@ -1,0 +1,35 @@
+# === sites/prostata.yaml — generado por convert_constraints.py ===
+# Revisar antes de usar. Rx inyectada de hojas de protocolo (externa a DICOM).
+site: Prostata
+
+protocols:
+  - id: prostata_hipo_7000
+    levels: [PTV_High]
+    rx_gy: {PTV_High: 70.0}
+
+targets:
+  PTV_High:
+    geometry_candidates: [PTV_High]   # orden de fallback (-04 primero)
+    goals:
+      - {metric: {type: V, param: 70.0, param_unit: Gy}, limit: {op: ge, value: 98.0, unit: pct_vol}, priority: 1}   # PTV_High: V70Gy
+
+oars:
+  Bladder:
+      - {metric: {type: V, param: 65.0, param_unit: Gy}, limit: {op: le, value: 15.0, unit: pct_vol}, priority: 1}   # Bladder: V65Gy
+      - {metric: {type: V, param: 55.0, param_unit: Gy}, limit: {op: le, value: 25.0, unit: pct_vol}, priority: 1}   # Bladder: V55Gy
+      - {metric: {type: V, param: 45.0, param_unit: Gy}, limit: {op: le, value: 45.0, unit: pct_vol}, priority: 1}   # Bladder: V45Gy
+  Bowel_Small:
+      - {metric: {type: Dmax}, limit: {op: le, value: 52.0, unit: Gy}, priority: 2}   # Bowel_Small: Dmax
+      - {metric: {type: V, param: 46.5, param_unit: Gy}, limit: {op: le, value: 2.0, unit: cm3}, priority: 2}   # Bowel_Small: V46.5Gy
+  FemoralHead_L:
+      - {metric: {type: V, param: 50.0, param_unit: Gy}, limit: {op: le, value: 1.0, unit: pct_vol}, priority: 3}   # FemoralHead_L: V50Gy
+      - {metric: {type: Dmax}, limit: {op: le, value: 52.5, unit: Gy}, priority: 3}   # FemoralHead_L: Dmax
+  FemoralHead_R:
+      - {metric: {type: V, param: 50.0, param_unit: Gy}, limit: {op: le, value: 1.0, unit: pct_vol}, priority: 3}   # FemoralHead_R: V50Gy
+      - {metric: {type: Dmax}, limit: {op: le, value: 52.5, unit: Gy}, priority: 3}   # FemoralHead_R: Dmax
+  Rectum:
+      - {metric: {type: V, param: 65.0, param_unit: Gy}, limit: {op: le, value: 15.0, unit: pct_vol}, priority: 1}   # Rectum: V65Gy
+      - {metric: {type: V, param: 55.0, param_unit: Gy}, limit: {op: le, value: 25.0, unit: pct_vol}, priority: 1}   # Rectum: V55Gy
+      - {metric: {type: V, param: 45.0, param_unit: Gy}, limit: {op: le, value: 45.0, unit: pct_vol}, priority: 1}   # Rectum: V45Gy
+  Sigmoid:
+      - {metric: {type: Dmax}, limit: {op: le, value: 55.0, unit: Gy}, priority: 2}   # Sigmoid: Dmax

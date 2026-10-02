@@ -1,0 +1,104 @@
+# ============================================================================
+# Tabla de armonización — SCHEMA GLOBAL
+# Roles y aliases GENERADOS por build_harmonization.py de las plantillas reales.
+# ignore/qa_gate/metadata son estáticos (editables a mano). Regenerable.
+# ============================================================================
+schema_version: 2
+
+# ---- 1. VOCABULARIO DE ROLES (sufijo [sitios] = dónde aplica) ----
+roles:
+  targets:
+    - PTV_High
+    - PTV_Low
+    - PTV_Mid
+  oars:
+    - A_Carotid_L    # [CyC]
+    - A_Carotid_R    # [CyC]
+    - Bladder    # [Pelvis,Prostata]
+    - Bone_Mandible    # [CyC]
+    - Bowel_Small    # [Pelvis,Prostata]
+    - BrachPlex_PRV5_L    # [CyC]   # PRV: geometría del serial
+    - BrachPlex_PRV5_R    # [CyC]   # PRV: geometría del serial
+    - Brain    # [CyC]
+    - Brainstem_PRV05    # [CyC]   # PRV: geometría del serial
+    - Cochlea_L    # [CyC]
+    - Cochlea_R    # [CyC]
+    - Esophagus    # [CyC]
+    - Eye_L    # [CyC]
+    - Eye_R    # [CyC]
+    - FemoralHead_L    # [Pelvis,Prostata]
+    - FemoralHead_R    # [Pelvis,Prostata]
+    - Glnd_Lacrimal_L    # [CyC]
+    - Glnd_Lacrimal_R    # [CyC]
+    - Glnd_Submand_L    # [CyC]
+    - Glnd_Submand_R    # [CyC]
+    - Glnd_Thyroid    # [CyC]
+    - Joint_TM_L    # [CyC]
+    - Joint_TM_R    # [CyC]
+    - Larynx    # [CyC]
+    - Lens_L    # [CyC]
+    - Lens_R    # [CyC]
+    - Musc_Constrict    # [CyC]
+    - OpticChiasm_PRV3    # [CyC]   # PRV: geometría del serial
+    - OpticNrv_PRV03_L    # [CyC]   # PRV: geometría del serial
+    - OpticNrv_PRV03_R    # [CyC]   # PRV: geometría del serial
+    - Oral_Cavity    # [CyC]
+    - Parotid_L    # [CyC]
+    - Parotid_R    # [CyC]
+    - PenileBulb    # [Pelvis]
+    - Pituitary    # [CyC]
+    - Rectum    # [Pelvis,Prostata]
+    - Sigmoid    # [Prostata]
+    - SpinalCord_PRV05    # [CyC]   # PRV: geometría del serial
+
+# ---- 2. ALIAS (variante -> rol; derivados de nombresPosibles, ya limpios) ----
+#      Extender a mano con variantes vistas al minar (castellano, lateralidad).
+aliases:
+  "bowel": Bowel_Small
+  "ptv_high-04": PTV_High
+  "ptv_low-04": PTV_Low
+  "ptv_mid-04": PTV_Mid
+  # --- extensión manual (ejemplos; completar al minar) ---
+  # "recto": Rectum
+  # "vejiga": Bladder
+  # "parotida_izq": Parotid_L
+  # "medula": SpinalCord_PRV05
+
+# ---- 3. IGNORE (SIN *_prv: los PRV son geometría de seriales, no se ignoran) ----
+ignore_patterns:
+  - "couch*"
+  - "*marker*"
+  - "ptv_eval*"
+  - "ring*"
+  - "z_*"
+  - "opt_*"
+  - "avoid*"
+  - "*_helper"
+
+# ---- 4. QA GATE (dosis ABSOLUTA cruda Gy; D95 vs Rx_nivel; banda única) ----
+qa_gate:
+  metric: D95
+  dose_space: absolute_gy
+  bands:
+    default: {floor_pct: 95, ceil_pct: 105}   # provisional; recalibrar si muchos falsos flags
+  on_fail: flag_for_manual_review
+
+# ---- METADATA POR PACIENTE (esquema) ----
+patient_metadata_schema:
+  patient_id: str              # DE-IDENTIFICADO (el mapeo HC->id NO va a git)
+  site: str
+  protocol_id: str
+  rx_high_gy: float
+  rx_by_level_gy: {}
+  out_of_convention: null      # null | motivo -> conjunto reservado (generalización)
+  qa_flags: []
+  aliases_applied: []
+
+# ---- APÉNDICE (informativo) ----
+# Estructuras EXCLUIDAS de intención (CTV / restas):
+#   Bone_Mand-PTV_Hi  [CyC]
+#   CTV_High  [CyC,Prostata]
+# nombresPosibles SUCIOS detectados y limpiados (revisar origen in-house):
+#   [CyC] PTV_High-04: ['PTV_High-04', 'PTV_HighPTV_High']
+#   [CyC] PTV_High-04: ['PTV_High-04', 'PTV_HighPTV_HighPTV_High']
+#   [CyC] Glnd_Thyroid: ['Glnd_Thyroid', '', 'Glnd_Thyroid']
