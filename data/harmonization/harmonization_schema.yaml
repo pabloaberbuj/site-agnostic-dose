@@ -54,28 +54,112 @@ roles:
 # ---- 2. ALIAS (variante -> rol; derivados de nombresPosibles, ya limpios) ----
 #      Extender a mano con variantes vistas al minar (castellano, lateralidad).
 aliases:
+  "bladder_p": Bladder   # manual (ver MANUAL_OAR_ALIASES)
   "bowel": Bowel_Small
+  "bowel_bag": Bowel_Small   # manual (ver MANUAL_OAR_ALIASES)
+  "bowel_p": Bowel_Small   # manual (ver MANUAL_OAR_ALIASES)
+  "bowelbag": Bowel_Small   # manual (ver MANUAL_OAR_ALIASES)
+  "brchplex_l_prv05": BrachPlex_PRV5_L   # manual (ver MANUAL_OAR_ALIASES)
+  "brchplex_r_prv05": BrachPlex_PRV5_R   # manual (ver MANUAL_OAR_ALIASES)
+  "cabeza_femoral_l": FemoralHead_L   # manual (ver MANUAL_OAR_ALIASES)
+  "cabeza_femoral_r": FemoralHead_R   # manual (ver MANUAL_OAR_ALIASES)
+  "cavity_oral": Oral_Cavity   # manual (ver MANUAL_OAR_ALIASES)
+  "colon-sigmoid": Sigmoid   # manual (ver MANUAL_OAR_ALIASES)
+  "colon_sigmoid": Sigmoid   # manual (ver MANUAL_OAR_ALIASES)
+  "lens left": Lens_L   # manual (ver MANUAL_OAR_ALIASES)
+  "lens right": Lens_R   # manual (ver MANUAL_OAR_ALIASES)
+  "opticchiasmprv03": OpticChiasm_PRV3   # manual (ver MANUAL_OAR_ALIASES)
+  "opticnrv_l_prv03": OpticNrv_PRV03_L   # manual (ver MANUAL_OAR_ALIASES)
+  "opticnrv_r_prv03": OpticNrv_PRV03_R   # manual (ver MANUAL_OAR_ALIASES)
+  "penilbulb": PenileBulb   # manual (ver MANUAL_OAR_ALIASES)
+  "pituitarygland": Pituitary   # manual (ver MANUAL_OAR_ALIASES)
+  "ptv": PTV_High   # manual (ver MANUAL_ALIASES)
   "ptv_high-04": PTV_High
+  "ptv_high_p": PTV_High   # manual (ver MANUAL_ALIASES)
   "ptv_low-04": PTV_Low
   "ptv_mid-04": PTV_Mid
+  "ptv_ptta": PTV_High   # manual (ver MANUAL_ALIASES)
+  "rectum_p": Rectum   # manual (ver MANUAL_OAR_ALIASES)
+  "tmjoint_l": Joint_TM_L   # manual (ver MANUAL_OAR_ALIASES)
+  "tmjoint_r": Joint_TM_R   # manual (ver MANUAL_OAR_ALIASES)
   # --- extensión manual (ejemplos; completar al minar) ---
   # "recto": Rectum
   # "vejiga": Bladder
   # "parotida_izq": Parotid_L
   # "medula": SpinalCord_PRV05
 
-# ---- 3. IGNORE (SIN *_prv: los PRV son geometría de seriales, no se ignoran) ----
+# ---- 3. EXCLUDE_NAMES (estructuras REALES, no ruido — van a 'exclude', no a 'ignore'.
+#      Se reportan, no se modelan. Distinto de ignore_patterns: esto es lista explícita,
+#      no patrón, porque son nombres concretos con semántica clínica, no helpers.) ----
+exclude_names:
+  - "BladderPTV"
+  - "Bowel_PRV"
+  - "BrachialPlex_L"
+  - "BrachialPlex_R"
+  - "BrachialPlexus_L"
+  - "BrachialPlexus_R"
+  - "Brainstem"
+  - "Chiasm"
+  - "Cochlea_L_PRV03"
+  - "Cochlea_PRV03_L"
+  - "Cochlea_PRV03_R"
+  - "Cochlea_R_PRV03"
+  - "OpticChiasm"
+  - "OpticChiasm_PRV2"
+  - "OpticNrv_L"
+  - "OpticNrv_PRV02_L"
+  - "OpticNrv_PRV02_R"
+  - "OpticNrv_R"
+  - "PTV_LN_Iliac"
+  - "PTV_LN_Inguinofe"
+  - "PTV_LN_Pelvics"
+  - "PTV_Low_total"
+  - "PTV_Pelvics"
+  - "PTV_Pelvis"
+  - "PTV_Prostate"
+  - "PTV_SeminalVes"
+  - "PTV_Uterurs"
+  - "PTV_Uterus"
+  - "PTV_total"
+  - "PTVn"
+  - "PTVn_"
+  - "PTVp"
+  - "PTVp_"
+  - "RectumPTV"
+  - "SpinalCord"
+  - "SpinalCord_PRV1"
+
+# ---- 4. IGNORE (SIN *_prv: los PRV son geometría de seriales, no se ignoran) ----
 ignore_patterns:
   - "couch*"
   - "*marker*"
   - "ptv_eval*"
   - "ring*"
-  - "z_*"
-  - "opt_*"
+  - "z*"               # z_*, zring*, zopt*, pero tambien zArtifact/zShoulders/zCal_*/
+                        # zCtrol/zDosis*/zBody/zHigh/zPTV_High57 sin guion bajo (Paso 2,
+                        # revision real de datos): mismo convenio interno de estructuras
+                        # de optimizacion/trabajo, no se puede enumerar variante por variante.
+  - "opt*"              # igual que z*: visto "OPTPTV_Low" concatenado sin guion bajo
   - "avoid*"
   - "*_helper"
+  - "*marcador*"       # "marker" en castellano, mismo convenio que *marker*
+  - "*control*"        # estructuras de trabajo tipo "Control Region" / "NS_Control"
+  - "dose*"
+  - "dosis*"           # isodosis convertida a ROI para visualizacion (ej. "Dose 107[%]")
+  - "match*"           # puntos/lineas de union de isocentros ("Match points")
+  - "ns_*"              # prefijo interno visto en varias estructuras de trabajo
+                        # (NS_Control, NS_ControlPrueba, NS_NormalTissue, NS_LN, NS_Ring, NS_UTERUS)
+  - "poi*"              # Point Of Interest de Eclipse, no es una estructura
+  - "*_eval*"           # evaluacion ("PTV_High_Eval"); ya existe ptv_eval* (prefijo),
+                        # esto cubre el sufijo
+  - "*marcapaso*"       # dispositivo (castellano "marcapasos"), no anatomia
+  - "*caliente*"        # region "hot" de revision (castellano), visto en CyC y Prostata
+  - "*cal*"             # Cal/cal_low/cal_high/Low_Cal/Mid_Cal/High_Cal: helper de
+                        # calculo, ningun rol canonico contiene "cal"
+  - "none"              # artefacto de export (nombre literal "None")
+  - "ctrl*"             # forma corta de "control" (ver *control*)
 
-# ---- 4. QA GATE (dosis ABSOLUTA cruda Gy; D95 vs Rx_nivel; banda única) ----
+# ---- 5. QA GATE (dosis ABSOLUTA cruda Gy; D95 vs Rx_nivel; banda única) ----
 qa_gate:
   metric: D95
   dose_space: absolute_gy
@@ -85,14 +169,20 @@ qa_gate:
 
 # ---- METADATA POR PACIENTE (esquema) ----
 patient_metadata_schema:
-  patient_id: str              # DE-IDENTIFICADO (el mapeo HC->id NO va a git)
+  patient_id: str              # = AnonID del extractor (no se construye mapeo propio)
   site: str
   protocol_id: str
   rx_high_gy: float
   rx_by_level_gy: {}
+  ptv_levels_present: []       # niveles realmente resueltos (no todos los pacientes tienen Mid/Low)
+  spacing_x_mm: float          # grilla de dosis nativa, sin resamplear
+  spacing_y_mm: float
+  spacing_z_mm: float          # 3.0 en la mayoría; 2.0 en un subgrupo (ver Paso 1) — SIEMPRE registrar, nunca asumir
+  body_bbox_voxels: {}         # {i_min,i_max,j_min,j_max,k_min,k_max} sobre la grilla nativa; recorte/relleno lo hace el datamodule
   out_of_convention: null      # null | motivo -> conjunto reservado (generalización)
   qa_flags: []
   aliases_applied: []
+  harmonization_hash: str      # hash de los YAML de armonización usados en este NPZ
 
 # ---- APÉNDICE (informativo) ----
 # Estructuras EXCLUIDAS de intención (CTV / restas):

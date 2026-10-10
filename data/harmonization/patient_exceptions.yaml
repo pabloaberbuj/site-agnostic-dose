@@ -1,0 +1,85 @@
+# patient_exceptions.yaml — excepciones por paciente (VA A GIT: solo AnonID + motivo)
+# Ubicación: repo Python, data/harmonization/
+# El preprocesador lo lee ANTES de resolver nombres de estructura.
+# Depende de que AnonID sea estable entre exports (se verificó: los mismos IDs se repitieron
+# entre exports sucesivos).
+#
+# Tres categorías:
+#   excluded           sacados de la lista de minado. NO se exportan (no hay DICOM). Se registran
+#                      para que no vuelvan al re-minar la lista.
+#   out_of_convention  exportados, NO entran al train; quedan como conjunto reservado para
+#                      evaluar generalización.
+#   reviewed_ok        flagueados por el QA gate o por el extractor, ya revisados en Eclipse.
+#                      Entran al train; se anotan para no volver a revisarlos.
+
+excluded:
+  PT_59b71c9ea242b8a9: {site: CyC, motivo: reirradiacion_66Gy_previa}        # plan previo sumado
+  PT_5b54e7add30325f0: {site: Prostata, motivo: remarcacion_dos_PTV_conviven} # D95 62.9%
+  PT_2da9363b3f9ac152: {site: Prostata, motivo: replanificado_margen_menor}   # decisión puntual
+  PT_146a99b8f50f495e: {site: Pelvis, motivo: monorreno_trasplante_renal}     # riñón en posición anómala; plan sobreenfriado
+
+out_of_convention:
+  # Pelvis con retroperitoneo incluido en el campo, sin nomenclar como tal (campos en Y ~38-40 cm
+  # vs ~25 cm de una pelvis normal). Dosis de naturaleza distinta (baño nodal): fuera del train.
+  # Ya estaban exportados: quedan como primeros casos del conjunto reservado (zero-shot).
+  PT_49f9ceef1c10627d: {site: Pelvis, motivo: retroperitoneo_no_nomenclado}   # TargetVolumeID PTV_Low
+  PT_258346f1e40fbf8f: {site: Pelvis, motivo: retroperitoneo_no_nomenclado}   # TargetVolumeID PTV_total
+  # CyC con High + Low y SIN PTV_Mid (7 ausente, 5 con volumen 0): esquema de prescripción distinto
+  # del protocolo de 3 niveles. Primeros casos de "otra prescripción": apartados para el experimento
+  # multi-protocolo (inferencia directa vs reentrenamiento). protocol_id PENDIENTE: falta confirmar
+  # la Rx del Low (el D95 por nivel del QA gate la muestra; ¿54.45 o 59.4?).
+  PT_0325846a2bdff29e: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  PT_0a2f34e2e0379df0: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  PT_14b63f3f19bafbce: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  PT_1b461e4fa0109c7b: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  PT_21cb7f818391b0c4: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  PT_40ffbce41ee8a2a1: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  PT_46e345b551a2fbc1: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  PT_56f3d5797457174f: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  PT_65ebc54914351e57: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  PT_6a4269d796a3ab42: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  PT_7b174492f8ad48eb: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  PT_a34f7226d9d2aabc: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+
+reviewed_ok:
+  # CyC: cavum, PTV solapado con PRV de quiasma/nervios ópticos (prioridad mayor al PTV);
+  # D95 de PTV por debajo de banda justificado clínicamente.
+  - {id: PT_29f05c0351fa8932, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos}
+  - {id: PT_3560368155841ffd, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos; TargetVolumeID_zOptPTV_High_mal_asignado_cota_inferior_versiones}
+  - {id: PT_40b0f1826c4014c8, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos}
+  - {id: PT_98d042ec47757136, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos}
+  - {id: PT_a0d0915d25c4dfa0, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos}
+  - {id: PT_a3632635869b1ae2, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos}
+  - {id: PT_e280fb46e8080ea1, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos}
+  - {id: PT_f79a7433955bb4c4, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos}
+  - {id: PT_fb4e83949ce02ac9, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos}
+  # Pelvis: PTV con nombre fuera de TG-263 ('PTV' o 'PTV_High_P'); se resuelve por alias.
+  - {id: PT_1fc29c9ea549e131, site: Pelvis, motivo: nombre_PTV_fuera_TG263_resuelto_por_alias}
+  - {id: PT_a5edb6897c89cb3b, site: Pelvis, motivo: nombre_PTV_fuera_TG263_resuelto_por_alias}
+  - {id: PT_fabc8ae02663abe3, site: Pelvis, motivo: nombre_PTV_fuera_TG263_resuelto_por_alias}
+  # Pelvis: plan sin TargetVolumeID (falta de planificación). PTV = 'PTV', resuelve por alias.
+  # Conteos de versiones no calculados (vacío = no calculado, NO cero).
+  - {id: PT_abec38677519da80, site: Pelvis, motivo: sin_TargetVolumeID_PTV_nombre_PTV}
+  # Pelvis: flag de plan sum, pero el plan sum está vacío. Sin efecto.
+  - {id: PT_a93895b574076b41, site: Pelvis, motivo: plan_sum_vacio}
+  # Próstata: PTV con nombre fuera de TG-263 ('PTV_Ptta'); se resuelve por alias.
+  - {id: PT_04387201c8c366f3, site: Prostata, motivo: nombre_PTV_fuera_TG263_PTV_Ptta_resuelto_por_alias}
+  # Próstata: TargetVolumeID mal asignado en el plan ('PTV_Prostate', estructura más chica que
+  # PTV_High). Resuelve a PTV_High. NO aliasar PTV_Prostate. Conteo de versiones = cota inferior.
+  - {id: PT_2801fef819714530, site: Prostata, motivo: TargetVolumeID_PTV_Prostate_mas_chico_cota_inferior_versiones}
+  - {id: PT_5787d1d3258de95d, site: Prostata, motivo: TargetVolumeID_PTV_Prostate_mas_chico_cota_inferior_versiones}
+  # Próstata: plan sum con tratamiento lejano; usable.
+  - {id: PT_c1ba3262f2e7e342, site: Prostata, motivo: plan_sum_tratamiento_lejano}
+  # Próstata: D95 92.1% revisado en Eclipse, ok.
+  - {id: PT_b1b995a33bfa44ab, site: Prostata, motivo: D95_bajo_banda_revisado_ok}
+  # Pelvis: TargetVolumeID 'PTVp' = PTV primario. PTV_High = PTVp + PTVn (primario + nodal). Se elige
+  # PTV_High. NO aliasar PTVp a PTV_High (es una estructura distinta, más chica).
+  - {id: PT_2276e7c04f6aa6c6, site: Pelvis, motivo: TargetVolumeID_PTVp_primario_PTV_High_es_PTVp_mas_PTVn_NO_aliasar}
+  # Pelvis: el target del plan es el PTV recortado a piel ('PTV-0.4' / 'Z_PTV_High_Crop4'). La
+  # diferencia contra PTV_High es de ~1 cm3 sobre ~1600-1887 cm3. Se normaliza con PTV_High. Ok.
+  - {id: PT_d8d446f2dbe53899, site: Pelvis, motivo: target_crop_piel_dif_1cm3_sobre_1886_resuelve_PTV_High}
+  - {id: PT_68a542b88ec05126, site: Pelvis, motivo: target_crop_piel_dif_1cm3_resuelve_PTV_High}
+  # CyC: TargetVolumeID asignado a una estructura de optimización (zRing/zOpt) por error; el plan
+  # va al PTV recortado. PTV resuelve bien. Conteo de versiones = cota inferior.
+  - {id: PT_348d801fd34b2a81, site: CyC, motivo: TargetVolumeID_zRingPTV_High_mal_asignado_cota_inferior_versiones}
+  - {id: PT_514bde984025ac6d, site: CyC, motivo: TargetVolumeID_zOptPTV_High_mal_asignado_cota_inferior_versiones}

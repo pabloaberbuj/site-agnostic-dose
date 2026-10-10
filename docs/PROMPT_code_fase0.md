@@ -42,9 +42,11 @@ DICOM crudos: `[COMPLETAR: ruta a los DICOM exportados por sitio/paciente]`.
 del plan (leakage). Los ratios se **derivan** de `rx_gy`, no se cargan a mano. Rx reales:
 Próstata 70 Gy; Pelvis 50 Gy; CyC 69.96 / 59.4 / 54.45 Gy (High/Mid/Low).
 
-**Red sobre la grilla de dosis nativa**, sin resamplear a la grilla del CT. Spacing esperado
-en esta etapa 2.5×2.5×3 mm (confirmado en 6 pacientes; hay que confirmarlo en todos).
-Padding a un tamaño fijo global (provisional 176×128×256, derivado de 6 pacientes; ver Paso 1).
+**Red sobre la grilla de dosis nativa**, sin resamplear a la grilla del CT. El Paso 1 (hecho, ver
+`results/auditorias/paso1_headers.md`) confirmó en los 503: 2.5×2.5 mm in-plane; Z de 3.0 mm en 493
+pacientes y 2.0 mm en 10 (se incluyen; `spacing_z_mm` va en la metadata). La grilla de dosis coincide con
+el bounding box del BODY, no con el campo de tratamiento. **No hay padding global**: el NPZ guarda la
+grilla nativa tal cual y el recorte/relleno lo hace el datamodule (ver Paso 2.7).
 
 **Resolución de PTV (aplica a normalización y a geometría de intención):** para cada nivel,
 recorrer `geometry_candidates` en orden (en CyC `PTV_X-04` primero, luego `PTV_X`). Usar el primer
@@ -82,11 +84,15 @@ niveles. Fuera de banda → flag para revisión manual, no descarte automático.
 
 **Profiling (0.0) cerrado:** U-Net 3D vanilla entra a volumen entero (176×128×256) sin parches,
 `base_feat=16`, batch 1 (`base_feat=32` no entra). El MedNeXt-k5 medido es un stand-in:
-provisorio hasta tener la implementación real. No hay nada que hacer en 0.0 salvo no romperlo.
+provisorio hasta tener la implementación real. No hay nada que hacer en 0.0 salvo no romperlo. El
+Paso 1 mostró pacientes más grandes que esa caja: se re-perfila en Fase 3 sobre los casos reales
+más grandes (p.ej. `PT_85558912476286d3`, 8.03 M de vóxeles tras recortar al BODY), no sobre una caja
+padeada. No re-perfilar ahora.
 
-**Datos identificables:** los tres CSV de pacientes (CyC, PelvisGin, ProstataHipo) tienen nombre,
-apellido y número de historia clínica. Cada CSV trae además modalidad y dosis total (todo VMAT;
-un solo protocolo por sitio en este export).
+**Datos y de-identificación:** el extractor entregó, por sitio, los DICOM anonimizados y un
+`metadata_planes_<Sitio>.csv` (una fila por paciente, indexado por `AnonID`, sin HC). Es VMAT en
+los tres sitios, con un solo protocolo por sitio. Los CSV de metadata son auditoría y gestión del
+dataset, no input del modelo. `patient_exceptions.yaml` lista excepciones por `AnonID`.
 
 ## Plan de trabajo (en este orden; cada hito termina con un reporte al chat)
 
@@ -94,21 +100,27 @@ un solo protocolo por sitio en este export).
 - Crear la estructura de directorios del charter §6 (repo y carpeta de datos hermana). Verificar
   que `.gitignore` no pueda arrastrar nada de `data\` pesado y que no hay datos identificables
   trackeados.
-- Construir una tabla de de-identificación: `HC → patient_id` anónimo y estable. **La tabla de
-  mapeo vive solo en la carpeta de datos, fuera de git.** Los CSV originales no se copian al repo.
+- **No construir una tabla de de-identificación propia.** El extractor ya exportó los DICOM
+  anonimizados y asignó un `AnonID` estable por paciente. Usar `patient_id` = `AnonID`. El
+  `mapping_ids.csv` (HC ↔ AnonID) vive junto a los DICOM, fuera de git: no lo necesitás, no lo
+  leas ni lo copies. Los CSV originales de pacientes (con nombre y HC) no se usan en este repo.
   Los splits y la metadata que van a git usan solo `patient_id`.
 - Colocar los YAML de armonización en `repo\...\data\harmonization\` y los scripts en `scripts\`.
-- **Reporte:** estructura creada, N de pacientes por sitio tras de-identificar, confirmación de
-  que nada identificable quedó en el repo.
+  Colocar también `patient_exceptions.yaml` ahí; las tareas de alias y normalización pendientes están
+  en `PROMPT_python_pendientes_armonizacion.md`.
+- **Reporte:** estructura creada, N de pacientes por sitio (esperado: CyC 196; Pelvis 161, de los cuales
+  2 son `out_of_convention`; Próstata 146), confirmación de que nada identificable quedó en el repo.
 
-### Paso 1: Inventario de headers (barato, antes de escribir el preprocesador)
+### Paso 1: Inventario de headers (HECHO; resultados en `results/auditorias/paso1_headers.md`)
 Para **todos** los pacientes (no solo los 6 de muestra) leer solo headers DICOM y reportar por
 sitio la distribución de: dimensiones de la grilla de RTDOSE, spacing (x, y, z), `DoseGridScaling`,
 extent físico del BODY, y presencia/volumen de las estructuras que el YAML de cada sitio espera
 (en particular `PTV_*-04`: existe / vacío / ausente).
 - Este paso **es** la auditoría de escala de vóxel en su primera versión.
-- Decide si el tamaño de padding fijo es válido: si algún paciente excede 176×128×256 o el spacing
-  no es uniforme, **frená y reportá** antes de seguir.
+- **Decisiones tomadas con ese reporte** (no re-discutir): (a) los 4 pacientes de grilla ~600×600 mm NO
+  son `out_of_convention`: su BODY es normal y la grilla parece la de toda la imagen; el recorte al BODY
+  los lleva a tamaño normal. (b) Los 10 de Z=2.0 mm entran al train. (c) Los 12 de CyC sin `PTV_Mid` van
+  apartados (`patient_exceptions.yaml`).
 - **Reporte:** tablas por sitio, outliers listados por `patient_id`, y recomendación de tamaño de padding.
 
 ### Paso 2: Preprocesador nuevo (`src/preprocess/`)
@@ -132,13 +144,18 @@ Debe, por paciente:
    cargar, a partir de la tabla, porque las ablaciones A1a/A1b y las augmentations de goals de
    A2 (omitir un goal, ruido, escalar ×[0.8,1.2]) necesitan variar los goals sin regenerar los
    NPZ.
-7. Padear a tamaño fijo y escribir **NPZ versionado**: `npz_v1_<etiqueta>/<sitio>/`. Nunca pisar
-   una versión existente; el config del experimento apunta explícitamente a una versión.
+7. Escribir el **NPZ versionado** en la **grilla nativa, sin recortar ni rellenar**:
+   `npz_v1_<etiqueta>/<sitio>/`. Nunca pisar una versión existente; el config del experimento apunta
+   explícitamente a una versión. Calcular y guardar en la metadata el **bounding box del BODY** (índices de
+   vóxel sobre la grilla nativa) y `spacing_x/y/z_mm`. El recorte y el relleno los hace el datamodule:
+   en 2D, plano fijo 256×256 (el máximo nativo observado es 248×242; si algún paciente lo excede,
+   frená y reportá). El esquema 3D (recorte al BODY y relleno por paciente) se define en Fase 3.
 8. Guardar metadata por paciente según `patient_metadata_schema` (incluye `protocol_id`,
    `rx_high_gy`, `rx_by_level_gy`, `out_of_convention`, `qa_flags`) y el **hash de los YAML de
    armonización usados**. La tabla ahora define inputs del modelo, así que un cambio en ella
    (como la unificación D0.035cm3→Dmax) cambia el entrenamiento: cada experimento debe poder
-   decir con qué versión de la tabla corrió.
+   decir con qué versión de la tabla corrió. Guardar también los niveles de PTV realmente presentes
+   (no todos los pacientes de CyC tienen `PTV_Mid`).
 
 Debe **fallar ruidoso** ante cualquier estructura desconocida, PTV no resoluble, o inconsistencia
 de frame. Sin defaults silenciosos.
@@ -158,7 +175,8 @@ Tests mínimos (unitarios, con datos sintéticos o un paciente de muestra):
 ### Paso 3: QA gate y pacientes fuera de convención
 Implementar el QA gate como script offline sobre dosis cruda (ver "Ya resuelto"). Salida: tabla por
 paciente y nivel con D95 en Gy, % de Rx, y flag. Correrlo sobre todos los pacientes y **no
-descartar nada**: yo reviso los flags manualmente.
+descartar nada**: yo reviso los flags manualmente. Cruzar con `patient_exceptions.yaml`: los
+`reviewed_ok` ya fueron revisados y se muestran aparte, no como pendientes.
 - **Reporte:** cuántos flags por sitio y nivel, distribución del D95/Rx por nivel (histograma o
   cuantiles). Con eso recalibramos la banda si hay demasiados falsos flags.
 
@@ -166,11 +184,21 @@ descartar nada**: yo reviso los flags manualmente.
 - **Contaminación sobre la dosis** (no sobre geometría ni volúmenes): detectar pacientes cuya dosis
   tenga naturaleza distinta a la del sitio (baños nodales, boosts no contemplados, niveles extra).
   Proponé qué indicadores usar y justificá; reportá candidatos antes de marcar nada como
-  `out_of_convention`.
+  `out_of_convention`. **Indicador concreto a incluir:** extensión cráneo-caudal del volumen que
+  recibe ≥ X% de Rx_High (medida sobre la dosis, no sobre nombres de estructura), por sitio. Motivo:
+  en Pelvis hubo planes con retroperitoneo incluido y SIN nomenclar como tal, que ningún chequeo por
+  nombre atrapa (campos en Y de ~38-40 cm vs ~25 cm en una pelvis normal). Calibrar el umbral con los
+  dos casos conocidos (`PT_49f9ceef1c10627d`, `PT_258346f1e40fbf8f`), ya marcados `out_of_convention`
+  en `patient_exceptions.yaml`, y reportar la distribución y los outliers por sitio. No hace falta
+  re-minar: sale de RTDOSE (y RTPLAN, si se exportó).
 - **Escala de vóxel:** repetir la auditoría del Paso 1 sobre los NPZ ya generados.
-- **Conteo de versiones de plan por paciente (ARIA):** **bloqueado**. Depende de que yo termine de
-  actualizar el software de extracción, que hoy no exporta ese dato. No empezar; dejar el hook
-  previsto en el esquema de metadata.
+- **Conteo de versiones de plan por paciente (ARIA):** desbloqueado. Sale de los
+  `metadata_planes_<Sitio>.csv` (`NPlanesCurso`, `NAprobados`, `NNoAprobados`, `NIntermedios`,
+  `NPlanSums`). El conteo de no-aprobados ya viene filtrado por tratamiento (mismo curso, misma Rx,
+  mismo structure set, mismo `TargetVolumeID`). Vacío = no calculado, no 0. Para los pacientes con
+  `TargetVolumeID` mal asignado (ver `patient_exceptions.yaml`) es una cota inferior. Producir la
+  tabla por sitio (distribución de versiones rechazadas) y la recomendación sobre el Pareto
+  (sí / no / condicionada); la decisión final la tomo yo con ese reporte.
 
 ### Paso 5: Baseline no-aprendida
 `scripts/baseline_dvh_promedio.py`: DVH promedio poblacional por `(sitio, rol de estructura)`.

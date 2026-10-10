@@ -21,20 +21,22 @@ Decisiones embebidas (ver conversación de diseño Fase 0.1):
     tocan: su canal es la pregunta viva del CHARTER §10.
   - Umbrales en % de Dmax/Dmean se etiquetan pct_rx (% de Rx), igual que las métricas D.
 """
-import json, argparse, re, sys
+import json, argparse, re, sys, os
 from collections import defaultdict, OrderedDict
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+from preprocess.normalize_structure_name import normalize_ptv_name
 
 # ----------------------------------------------------------------------------
 # Clasificación de rol de estructura
 # ----------------------------------------------------------------------------
-PTV_RE = re.compile(r'^PTV_(High|Mid|Low)(-\d+)?$', re.IGNORECASE)
 
 def classify(nombre):
     """Devuelve (clase, rol_canonico, nivel|None)."""
     n = nombre.strip()
-    m = PTV_RE.match(n)
-    if m:
-        level = 'PTV_' + m.group(1).capitalize()
+    nivel, _cropped = normalize_ptv_name(n)
+    if nivel:
+        level = 'PTV_' + nivel.capitalize()
         return ('target', level, level)
     if n.upper().startswith('CTV'):
         return ('ctv_excluded', n, None)
