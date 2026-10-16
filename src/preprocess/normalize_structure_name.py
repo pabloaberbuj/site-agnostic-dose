@@ -21,7 +21,8 @@ import re
 # Alias EXPLÍCITOS -> nivel; quedan FUERA de la regla de normalización (para la regla "_P" es un sufijo desconocido).
 # En el repo Python esto es la sección `aliases` de harmonization_schema.yaml. DicomExtract (C#, PlanMetadata.ALIAS_PTV)
 # mantiene una COPIA: si se agrega un alias en uno, hay que agregarlo en el otro.
-ALIASES = {"ptv": "high", "ptv_high_p": "high", "ptv_ptta": "high"}
+ALIASES = {"ptv": "high", "ptv_high_p": "high", "ptv_ptta": "high", "ptv_intermediate": "mid",
+           "ptv_high1": "high"}
 
 _CROP = re.compile(r"^(?P<base>.*?)[\-._! ]*0\.?4$")
 _SEP = re.compile(r"[\-._! ]+")
@@ -100,4 +101,6 @@ if __name__ == "__main__":
     assert pick_ptv([("PTV_High_P", 50), ("Body", 9000)])[0] == "PTV_High_P"
     assert pick_ptv([("PTV", 50), ("PTV_High-04", 48)])[0] == "PTV_High-04"      # recortado gana sobre alias
     assert pick_ptv([("PTV", 50), ("PTV_High", 48)])[0] is None                    # ambos sin recortar: ambiguo
+    assert normalize_ptv_name("PTV_Intermediate") == (M, False)   # CyC, decision 2026-10-14
+    assert normalize_ptv_name("PTV_High1") == (H, False)          # Pelvis, decision 2026-10-15
     print("OK")

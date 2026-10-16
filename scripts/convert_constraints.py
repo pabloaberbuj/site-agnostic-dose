@@ -98,6 +98,56 @@ def parse_metric(r):
 # se tocan: su canal es la pregunta viva del CHARTER §10.
 NEAR_MAX_EQUIV_CM3 = 0.035
 
+# ----------------------------------------------------------------------------
+# Goals manuales (no vienen de la plantilla in-house — agregados tras revisar datos
+# reales de Paso 2). Mismo mecanismo que MANUAL_ALIASES/EXCLUDE_NAMES de
+# build_harmonization.py: se fusionan con lo derivado del template, no se pierden
+# al regenerar.
+# ----------------------------------------------------------------------------
+MANUAL_OARS = {
+    'CyC': {
+        # Lobe_Temporal_L/R contorneado con frecuencia en datos reales pero ausente
+        # de la plantilla original; constraint confirmado por el usuario (Paso 2):
+        # Dmax<70Gy, prioridad 3, sobre el PRV (geometria del serial, igual que
+        # Brainstem/SpinalCord/OpticChiasm/OpticNrv/BrachPlex).
+        'Lobe_Temporal_PRV3_L': [
+            {'type': 'Dmax', 'op': 'le', 'value': 70.0, 'value_unit': 'Gy', 'priority': 3,
+             '_label': 'Lobe_Temporal_PRV3_L: Dmax (manual, Paso 2 — no viene de la plantilla)'},
+        ],
+        'Lobe_Temporal_PRV3_R': [
+            {'type': 'Dmax', 'op': 'le', 'value': 70.0, 'value_unit': 'Gy', 'priority': 3,
+             '_label': 'Lobe_Temporal_PRV3_R: Dmax (manual, Paso 2 — no viene de la plantilla)'},
+        ],
+    },
+    'Pelvis': {
+        # Decision del usuario (2026-10-14) revisando los 49 casos de "campo extendido"
+        # de Paso 2. SpinalCord/SpinalCanal: mismo rol que CyC (SpinalCord_PRV05), pero
+        # Dmax distinto (50Gy acá vs 45Gy en CyC) — valor explicito del usuario, no se
+        # reusa el de CyC.
+        'SpinalCord_PRV05': [
+            {'type': 'Dmax', 'op': 'le', 'value': 50.0, 'value_unit': 'Gy', 'priority': 1,
+             '_label': 'SpinalCord_PRV05: Dmax (manual, Paso 2 — no viene de la plantilla)'},
+        ],
+        # Kidney: Dmedia<15Gy. Se agrega a los tres roles (Kidneys combinado, Kidney_L/R
+        # por separado) — a nivel paciente solo las estructuras presentes importan, no
+        # hace falta elegir una sola forma acá. Los casos de campo extendido real
+        # (Y del RP >30cm) quedan fuera del train via patient_exceptions.yaml, no
+        # se excluyen a nivel de tabla.
+        'Kidneys': [
+            {'type': 'Dmean', 'op': 'le', 'value': 15.0, 'value_unit': 'Gy', 'priority': 3,
+             '_label': 'Kidneys: Dmedia (manual, Paso 2 — no viene de la plantilla)'},
+        ],
+        'Kidney_L': [
+            {'type': 'Dmean', 'op': 'le', 'value': 15.0, 'value_unit': 'Gy', 'priority': 3,
+             '_label': 'Kidney_L: Dmedia (manual, Paso 2 — no viene de la plantilla)'},
+        ],
+        'Kidney_R': [
+            {'type': 'Dmean', 'op': 'le', 'value': 15.0, 'value_unit': 'Gy', 'priority': 3,
+             '_label': 'Kidney_R: Dmedia (manual, Paso 2 — no viene de la plantilla)'},
+        ],
+    },
+}
+
 def unify_near_max(name, goals, log):
     out = []
     for m in goals:
@@ -164,6 +214,9 @@ def convert(path, site, rx, protocol_id):
                 aliases[p.lower()] = rol
         else:  # ctv_excluded | subtraction_excluded
             excluded.append((nombre, clase))
+
+    for rol, goals in MANUAL_OARS.get(site, {}).items():
+        oars[rol].extend(goals)
 
     unify_log = []
     for k in list(targets):
@@ -234,6 +287,9 @@ def emit_report(res):
     R.append(f"### Reporte de conversión — {res['site']}")
     R.append(f"- Targets (niveles PTV): {list(res['targets'].keys())}")
     R.append(f"- OARs: {len(res['oars'])}  | goals totales OAR: {sum(len(v) for v in res['oars'].values())}")
+    manual = MANUAL_OARS.get(res['site'], {})
+    if manual:
+        R.append(f"- OARs MANUALES (no vienen de la plantilla): {', '.join(sorted(manual))}")
     R.append(f"- Alias sembrados: {len(res['aliases'])}")
     if res['excluded']:
         R.append(f"- EXCLUIDOS (no entran a intención):")

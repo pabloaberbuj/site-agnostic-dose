@@ -76,6 +76,10 @@ oars:
       - {metric: {type: Dmax}, limit: {op: le, value: 6.0, unit: Gy}, priority: 3, tol: 15.0}   # Lens_L: Dmax
   Lens_R:
       - {metric: {type: Dmax}, limit: {op: le, value: 6.0, unit: Gy}, priority: 3, tol: 15.0}   # Lens_R: Dmax
+  Lobe_Temporal_PRV3_L:
+      - {metric: {type: Dmax}, limit: {op: le, value: 70.0, unit: Gy}, priority: 3}   # Lobe_Temporal_PRV3_L: Dmax (manual, Paso 2 — no viene de la plantilla)
+  Lobe_Temporal_PRV3_R:
+      - {metric: {type: Dmax}, limit: {op: le, value: 70.0, unit: Gy}, priority: 3}   # Lobe_Temporal_PRV3_R: Dmax (manual, Paso 2 — no viene de la plantilla)
   Musc_Constrict:
       - {metric: {type: Dmean}, limit: {op: le, value: 45.0, unit: Gy}, priority: 4, tol: 55.0}   # Musc_Constrict: Dmedia
   OpticChiasm_PRV3:

@@ -162,83 +162,271 @@ todavía fallan** — es, con diferencia, la decisión de más impacto pendiente
 Paso 2. `PTV_Mid01`/`PTV_Mid02` (~20 pacientes) y `Trachea`/`Traqueostomia`/
 `Pretraqueal` (~8 pacientes) le siguen en impacto.
 
+## Octava ronda (decisiones del usuario, 2026-10-14)
+
+25. **`Lobe_Temporal_PRV3_L/R` promovido a rol canónico en CyC.** Constraint
+    confirmado por el usuario: Dmax≤70Gy, prioridad 3, sobre el PRV. Nuevo
+    mecanismo `MANUAL_ROLES` (`build_harmonization.py`) + `MANUAL_OARS`
+    (`convert_constraints.py`) para que estas adiciones que no vienen de ninguna
+    plantilla sobrevivan a la regeneración. Alias para las 4 variantes de nombre
+    vistas (`Lobe_Tem_PRV3_L/R`, `PRV_LobeTempL/R_03`, `PRV_LobeTempL/R03`) +
+    exclusión del órgano llano (`Lobe_Temporal_L/R`, `TemporalLobe_L/R`). CyC pasó de
+    115/196 (58.7%) a 157/196 (80.1%) OK.
+26. **49 pacientes de Pelvis (campo extendido) marcados `out_of_convention`**
+    (motivo `campo_extendido_a_confirmar`) por decisión del usuario ("al ser pocos
+    los dejaría"). Lista completa de `patient_id` entregada al usuario junto con la
+    ubicación de `mapping_ids.csv` para que cruce contra Eclipse/ARIA. Pelvis pasó de
+    105/161 (65.2%) a 154/161 (95.7%) OK.
+27. **Gap de diseño corregido: `out_of_convention` no alcanzaba para que el paciente
+    procesara.** La excepción solo relajaba el requisito de nivel de PTV, pero las
+    estructuras desconocidas (`Kidney_L`, `Liver`, etc.) seguían hecho fallar todo el
+    paciente — contradecía "nunca se descarta" del CHARTER (el conjunto reservado no
+    se podía generar). Ahora **cualquier** paciente con entrada en
+    `patient_exceptions.yaml` (`out_of_convention` o `reviewed_ok`) tolera estructuras
+    desconocidas: se ignoran y quedan logueadas en `metadata['warnings']`, no frenan
+    el pipeline. Sin excepción registrada, sigue fallando ruidoso como siempre.
+28. **Alias `brainstem_prv05`→`Brainstem_PRV05`** (mayúscula distinta en "Stem":
+    `BrainStem_PRV05`).
+
+## Novena ronda (decisiones del usuario sobre Pelvis, revisadas caso por caso)
+
+29. **`SpinalCord`/`SpinalCanal` (con o sin PRV explícito) → rol canónico
+    `SpinalCord_PRV05` también en Pelvis** (ya existía para CyC). Dmax≤50Gy, prioridad 1
+    — valor explícito del usuario, NO reusa el de CyC (45Gy). 8 variantes de nombre
+    aliased (`SpinalCanal`, `SpinalCanal_PRV`, `SpinalCanalPRV05`, `SpinalCanal_PRV5`,
+    `SpinalCord_PRV`, `SpinalCord_PRVx`, `SpinalCord_PRV5`, `spinal canal`).
+30. **Bug encontrado al aplicar lo anterior:** varios pacientes tienen `SpinalCanal` Y
+    `SpinalCanal_PRV` como contornos SEPARADOS con volumen>0 — al aliasar ambos al mismo
+    rol, el pipeline (correctamente) marcaba ambigüedad. Agregué un desempate genérico
+    en `pipeline.py`: si exactamente uno de los candidatos ambiguos tiene "prv" en el
+    nombre crudo, gana (geometría más explícita) — mismo criterio que Brainstem/
+    SpinalCord en general, ahora aplicado a nivel de resolución, no solo de alias.
+31. **`Ovary_L`/`Ovary_R` → `exclude_names`** (decisión directa del usuario).
+32. **`Liver`, `Heart`, `Lung_L`, `Lung_R`, `Lungs` → `exclude_names`** ("desestimar la
+    estructura", sin chequeo de tamaño de campo — a diferencia de Kidney, no son
+    indicio fuerte de campo extendido por sí solos).
+33. **Kidney: roles canónicos `Kidneys`/`Kidney_L`/`Kidney_R` en Pelvis**, Dmean≤15Gy
+    prioridad 3 cada uno. **Criterio de distinción campo extendido vs. incidental**
+    (del usuario): tamaño Y del campo de tratamiento (jaw Y/ASYMY del RTPLAN) >300mm →
+    campo realmente extendido, paciente a `out_of_convention`; ≤300mm → riñón
+    incidental, paciente se mantiene con el constraint aplicado. Implementado
+    `max_y_field_size_mm()` en `dicom_io.py` (lee `BeamLimitingDevicePositionSequence`
+    de todos los beams/control points del RTPLAN). Resultado sobre los 36 pacientes de
+    Pelvis con Kidney: split limpio y bimodal — 13 por encima de 300mm (321-400mm), 23
+    por debajo (216-276mm), **sin casos ambiguos cerca del umbral** — buena señal de
+    que es una distinción real, no arbitraria.
+34. **`out_of_convention` de Pelvis recalculado de 49 a 13** (los 2 ya conocidos +
+    11 nuevos por Y>300mm). Los otros 36 de los 49 originales ya no necesitan
+    exception: sus estructuras (SpinalCord/Ovary/Liver/Heart/Lung/Kidney-normal) ahora
+    resuelven solas vía la tabla. Pelvis: 105/161 (65.2%) → **147/161 (91.3%)**.
+35. **`PTV_LN_Pelvic`/`PTV_LN_Inguin` (singular, sin "s"/"ofe") agregados a
+    `exclude_names`**, mismas variantes de las ya excluidas `PTV_LN_Pelvics`/
+    `PTV_LN_Inguinofe` — ahora el chequeo de sufijo de crop también las cubre
+    (`PTV_LN_Pelvic-04`, `PTV_LN_Inguin-04`).
+
+## Décima ronda (decisiones del usuario sobre CyC, revisadas caso por caso)
+
+36. **`Traqueostomia`/`Traqueostoma`, `Pretraqueal`, `Retina_L/R`, `Cornea_L/R`,
+    `Eye_R_PRV2mm`, `Parotida_L-0.2`/`Parotida_R-0.2`, `CuelloDer`/`CuelloIzq`,
+    `Nivel6`, `SCVIZQ` → `exclude_names`** (estructura desestimada, el paciente se
+    mantiene — decisión directa del usuario).
+37. **`PTV_Intermediate` → alias de nivel `PTV_Mid`** en `normalize_structure_name.py`
+    (mismo mecanismo que `ptv`/`ptv_high_p`/`ptv_ptta`). **Nota:** ese archivo tiene una
+    copia espejo en el repo del extractor (C#) — hay que agregar el alias ahí también
+    si se quiere que `DicomExtract` lo resuelva igual (no lo pude tocar yo).
+38. **PRV con prefijo en vez de sufijo, mismo margen → alias al rol ya canónico.**
+    Confirmado en los 2 pacientes con esa convención propia
+    (`PT_559aefbb26262e5c`, `PT_8a9d69ea4ef84f91`): `PRV_Brainstem05`/`BrainstemPRV`→
+    `Brainstem_PRV05`, `PRV_SpinalCord05`/`SpinalCordPRV`→`SpinalCord_PRV05`,
+    `PRV_BrachialPL05`/`PRV_BrachialPR05`/`BrachialP_L_PRV`/`BrachialP_R_PRV`→
+    `BrachPlex_PRV5_L/R`, `PRV_OpticC03`→`OpticChiasm_PRV3`, `PRV_OpticNL03`/
+    `PRV_OpticNR03`→`OpticNrv_PRV03_L/R`. `PRV_CochleaL03`/`PRV_CochleaR03`/
+    `CochleaLPRV`/`CochleaRPRV` → `exclude_names` (mismo criterio que los demás PRV de
+    Cochlea: el canónico es el órgano llano, no el PRV). **Resultado: ambos pacientes
+    resuelven completos** — no hizo falta "quitar paciente" como se había planteado al
+    principio, la regla de alias alcanzó. Enumerado explícito (no regex genérica): las
+    abreviaturas de órgano varían demasiado para una regla única confiable con solo 2
+    ejemplos.
+39. **`Trachea`/`EyeBack_L`/`EyeFront_L` → `exclude_names` (estructura) + paciente a
+    `out_of_convention`** (a diferencia de Traqueostomia/Pretraqueal, acá el usuario
+    pidió sacar también al paciente — indicio de extensión mediastínica/orbitaria real,
+    no solo una mención incidental). 9 pacientes: `PT_1c53a9b84029afec`,
+    `PT_1f99cbd2a709b242`, `PT_29f05c0351fa8932`, `PT_3560368155841ffd`,
+    `PT_5b6a74017a45908c`, `PT_909a424ff2e5e6d8` (`Trachea1`), `PT_ac70c40cbcd1ef75`,
+    `PT_bc3d6255ad42ab92`, `PT_c6a05735c3c0c43e`. Los primeros dos de esa lista estaban
+    en `reviewed_ok` por otro motivo (cavum) — se movieron a `out_of_convention`, el
+    motivo nuevo pesa más.
+40. **`PTV_C2`, `PTV66`, `PTV_Mid_3mm` → paciente a `out_of_convention`**
+    (`PT_caefecceac8746a3`, `PT_271fb2489b4a962c`, `PT_ee9e7d85f565a70b`):
+    convención propia de un paciente puntual, no generalizable.
+
+## Resueltas por el usuario (2026-10-14)
+
+- ~~Subpoblación en Pelvis con anatomía no-pélvica~~ → desglosada caso por caso
+  (decisiones #29-35): mayoría resuelta vía tabla, 13/49 confirmados campo extendido
+  real por tamaño de campo (Y>300mm) → `out_of_convention`.
+- ~~`Lobe_Temporal_L/R` + PRV en CyC~~ → rol canónico `Lobe_Temporal_PRV3_L/R`,
+  Dmax≤70Gy prioridad 3 (decisión #25).
+- ~~Nombres sin resolver en CyC (Trachea, Retina/Cornea, PRV con convención propia,
+  PTV_C2/66/Mid_3mm, etc.)~~ → resueltos caso por caso (decisiones #36-40).
+
+## Undécima ronda (decisiones del usuario sobre CyC/Pelvis/Próstata, 2026-10-14)
+
+41. **Bug encontrado y corregido (aviso del usuario):** en la octava/novena ronda,
+    `Ovary_L`/`Ovary_R` habían quedado mezclados por error en el mismo `exclude_names`
+    que `Liver`/`Heart`/`Lung_*`. Son decisiones DISTINTAS: Ovary = "excluirlos" (sacar
+    el paciente), Liver/Heart/Lung = "desestimar la estructura" (paciente se mantiene).
+    Corregido: Ovary sale de `exclude_names`, queda `unknown` adrede. 7 pacientes de
+    Pelvis con Ovary/variantes detectados (`Ovary_L`, `Ovary_R`, `Ovary_R1`) → todos a
+    `out_of_convention` (motivo `ovario_detectado`); 2 de ellos (`PT_01bb8559edc26ae5`,
+    `PT_129a4d7fa81eedbd`) eran justo los pacientes "CHHiP" que quedaban sin explicar.
+    Pelvis recalculado: 147/161 → **151/161 (93.8%)**.
+42. **`PTV_Mid01`/`PTV_Mid02` en CyC — resuelto con la regla del usuario** ("si tienen
+    volumen>0 eliminar paciente; si volumen=0 desestimar estructura"). Se calculó el
+    volumen rasterizado real (no solo presencia del nombre) para los 22 pacientes CyC
+    con estos nombres: 15 con volumen>0 real → `out_of_convention` (motivo
+    `mas_niveles_ptv_que_protocolo_mid01_02`; 11 nuevos + 4 que ya estaban mal
+    etiquetados como "Mid ausente" en una categoría previa — RECATEGORIZADOS); 7 con
+    volumen=0 → estructura a `exclude_names` (2 nuevos a `out_of_convention` con el
+    motivo previo `protocolo_distinto_sin_PTV_Mid`, 5 ya estaban). Un paciente
+    (`PT_514bde984025ac6d`) estaba en `reviewed_ok` por otro motivo — se movió, el
+    motivo nuevo pesa más.
+43. **`SpinalCord_PRV1`/`SpinalCord_PRVx` → "eliminar paciente" (margen no estándar).**
+    Los 2 únicos pacientes reales con estos nombres (`PT_caefecceac8746a3` en CyC,
+    `PT_7da7b2507f0ac933` en Pelvis) YA estaban `out_of_convention` por otro motivo, así
+    que no hubo que agregar pacientes nuevos. Se corrigió la tabla igual: se sacó el
+    alias `spinalcord_prvx` → `SpinalCord_PRV05` (no es el mismo margen). **Bug
+    encontrado al intentar dejar `SpinalCord_PRV1` como `unknown`:** la regla de
+    duplicado numerado le saca el dígito final ("1"), y "SpinalCord_PRV" (sin dígito)
+    YA es alias válido → el nombre terminaba resolviendo igual, generando ambigüedad
+    real con `SpinalCord_PRV05` y haciendo FALLAR por completo al paciente (ni NPZ
+    reservado). Corregido devolviendo `SpinalCord_PRV1` a `exclude_names` (mismo
+    resultado final para el único paciente real: reservado, no en train).
+44. **Próstata, decisiones del usuario:** `Colostomia`, `Protesis`, `PTV_ProstateBed`,
+    `"PTV VS OK"` → `out_of_convention` (4 pacientes). `RectumCorregido` → alias a
+    `Rectum`; si coexiste con `Rectum` llano, nuevo desempate genérico en pipeline.py
+    (igual que "prv": si exactamente un candidato dice "corregido", gana). `BowelLarge`/
+    `BowelLargePRV01`: solo el PRV (margen de SBRT) saca al paciente
+    (`PT_c1ba3262f2e7e342`, ex-`reviewed_ok`); `BowelLarge` sin PRV queda abierto (no
+    fue parte de la instrucción de hoy). `PTV_High100%`/`PTV_High95%`/`PTV_High69`/
+    `PTV_High70`/`PTV_High_mod`, `RectoenPTV`/`PRVRECTOENPTV`/`PTVSINRECTO`/`Bladder1`
+    → `exclude_names` (desestimar estructura, paciente se mantiene).
+45. **`Contraste`/`PTV_Low!High` resultaron ser de Pelvis, no CyC** (verificado en
+    datos reales — la instrucción del usuario no especificaba sitio). `Contraste` →
+    `ignore_patterns` (`*contraste*`, mismo tratamiento que `Cal`/`Caliente`);
+    `PTV_Low!High` → `exclude_names`. El único paciente con `PTV_Low!High` ya estaba
+    `out_of_convention` por campo extendido.
+46. **Nuevo artefacto reusable:** `results/auditorias/paso2_estructuras_por_paciente.csv`
+    (16918 filas: site, patient_id, raw_name — los 503 pacientes). Evita releer DICOM
+    cada vez que surge una decisión de armonización nueva; solo lectura de RTSTRUCT
+    (sin dosis), generado una vez. El volumen rasterizado (más caro, necesita grilla de
+    dosis) se sigue calculando aparte, bajo demanda, solo cuando una decisión puntual
+    depende de él (ej. ítem 42 arriba).
+
+**Resultados tras esta ronda:** CyC 175/196→**187/196 (95.4%)**; Pelvis 147/161→
+**151/161 (93.8%)**; Prostata 134/146→**145/146 (99.3%)**. Total 456/503→
+**483/503 (96.0%)**.
+
+## Resueltas por el usuario (2026-10-14)
+
+- ~~Subpoblación en Pelvis con anatomía no-pélvica~~ → desglosada caso por caso
+  (decisiones #29-35, #41): mayoría resuelta vía tabla, 13/49 confirmados campo
+  extendido real por tamaño de campo (Y>300mm), 7/49 por Ovary → `out_of_convention`.
+- ~~`Lobe_Temporal_L/R` + PRV en CyC~~ → rol canónico `Lobe_Temporal_PRV3_L/R`,
+  Dmax≤70Gy prioridad 3 (decisión #25).
+- ~~Nombres sin resolver en CyC (Trachea, Retina/Cornea, PRV con convención propia,
+  PTV_C2/66/Mid_3mm, Cal/Caliente, Contraste, RectumPTV, PTV_Low!High,
+  SpinalCord_PRV1/PRVx, PTV_Mid01/02, etc.)~~ → resueltos caso por caso
+  (decisiones #36-40, #42-45).
+- ~~Nombres sin resolver en Próstata (RectumCorregido, Colostomia, Protesis,
+  PTV_ProstateBed, BowelLargePRV01, PTV_High100%/95%/69/70/_mod, RectoenPTV/
+  PRVRECTOENPTV/PTVSINRECTO/Bladder1, "PTV VS OK")~~ → resueltos (decisión #44).
+
 ## Pendiente de revisión humana (NO resuelto autónomamente)
 
-- **Subpoblación en Pelvis con anatomía no-pélvica.** Al correr el preprocesador
-  completo aparecieron pacientes "PelvisGin" con `Kidney_L/R`, `Liver`, `Stomach`,
-  `Colon`, `Ureter_L/R`, `GreatVessels`, y nombres de PTV tipo `PTV1_CHHiP` /
-  `GTV_CHHiP` (protocolo de hipofraccionamiento prostático inglés, no ginecológico).
-  Esto es MUY distinto del protocolo pélvico ginecológico de `sites_pelvis.yaml`.
-  No decidí nada acá — puede ser (a) campo extendido/retroperitoneal real (mismo
-  fenómeno que los 2 `out_of_convention` ya conocidos, solo que con más nombres
-  nuevos), o (b) pacientes de otro sitio mezclados en el export por error. Necesito
-  tu criterio clínico antes de tocar `harmonization_schema.yaml` por esto — ver
-  reporte completo cuando termine la corrida. Nota de escala: en la corrida sobre
-  los 161, falló una fracción grande de Pelvis por `PTV_LN_Pelvics`/`PTV_Uterus`/
-  `Kidney_*`/`Liver`/etc. — no son 2-3 casos sueltos, es una porción considerable del
-  sitio. Separé lo que es claramente "subcomponente de PTV" (excluido arriba, #8) de
-  lo que es anatomía de OAR nueva (`Kidney_L/R`, `Liver`, `Stomach`, `SpinalCanal`,
-  `SpinalCanal_PRV`, `GreatVessels`, etc.) — esto último NO lo excluí ni lo promoví a
-  canónico: si estos pacientes reciben dosis renal/hepática real de forma rutinaria,
-  excluir esos OAR perdería información dosimétrica relevante justo para el
-  subgrupo que más la necesita.
+Cola corta, todos casos de 1-3 pacientes, sin patrón sistemático (no vale la pena una
+regla genérica). Gracias al inventario (`paso2_estructuras_por_paciente.csv`) ya no
+hace falta rescanear DICOM para decidir estos — solo el volumen rasterizado si la
+decisión depende de él.
 
-- **`Lobe_Temporal_L/R` + `Lobe_Tem_PRV3_L/R` en CyC, muy frecuente** (decenas de
-  pacientes, patrón idéntico al de Brainstem/SpinalCord: órgano llano + su PRV
-  coexistiendo). A diferencia de esos casos, acá **ninguno de los dos está en el
-  vocabulario canónico actual** — el template `zPabloCyC.txt` no incluía este
-  constraint. No agregué el rol porque decidir "el lóbulo temporal entra como OAR
-  modelado, con PRV3 como geometría" es una decisión de protocolo (como las de
-  CHARTER §5), no una corrección de nombre. Si confirmás que es un OAR real del
-  protocolo CyC, lo agrego como rol canónico igual que los demás seriales-con-PRV.
+- **CyC (9 fallos):** `Hippocampus_L/R`; `Lobe_Tem_PRV3_Lb/Rb` (variante con sufijo "b",
+  ¿otra revisión de contorno, mismo rol que `Lobe_Temporal_PRV3_L/R`?); `SpinalCord_Aux`;
+  `Elbow`; `amigdala`/`supra` (castellano, fragmentos de nombre); `PTV_Boost`/
+  `PTV_boost-04`; 3 ambigüedades REALES de recontoreo (dos contornos con volumen>0 para
+  el mismo rol, no se puede elegir sin ver el plan en Eclipse) — `Cochlea_L`+`Cochlea_L1`,
+  `Musc_Constrict`+`Musc_Constrict1`, `OpticChiasmPRV03`+`OpticChiasm_PRV3`.
+- **Pelvis (10 fallos):** `Vulva` (3 pacientes — nueva, ¿anatomía vulvar en el campo?);
+  `Stomach` (2 pacientes — ver nota abajo, mismo nombre que en Próstata); `Sigma`
+  (probable alias de `Sigmoid`, no confirmado con volumen); `PelvicBones`; `PRV_Rectum`/
+  `PTV_Rectum` (2 pacientes distintos); `PTV_High1`/`PTV_Uterus1` (sufijo numérico sobre
+  PTV — semántico o recontoreo, no está claro); `SacralPlexus` (OAR nuevo); `PTV_LN`/
+  `PTV_Lesion`; `eventracion`; `Bones`.
+- **Prostata (1 fallo):** `Stomach` (`PT_ebb40c323922547a`) — mismo nombre que en
+  Pelvis, candidato a una sola decisión que cubra ambos sitios (¿excluir estructura,
+  o indica campo extendido como Kidney en Pelvis?).
+- **`BowelLarge` sin PRV** (Prostata, sin decisión — distinto de `BowelLargePRV01` que
+  sí se resolvió hoy): ¿mismo órgano que `Bowel_Small`/`Sigmoid`, o un rol nuevo?
+## Duodécima ronda (resolución de los 20 pendientes, usuario, 2026-10-15)
 
-- **Nombres sin resolver, menor frecuencia, sin criterio claro todavía** (no son
-  errores de tipeo obvios, prefiero preguntarte en vez de adivinar): `Cal_Low`/
-  `Cal_Mid`/`cal`/`High_Cal`/`Low_Cal`/`Mid_Cal` y `Caliente`/`Caliente 2` (¿helpers
-  de cálculo/hotspot, ignorables?); `Contraste`; `PTV_Mid01`/`PTV_Mid02` (¿varios
-  Mid por paciente?); `PTV_Boost`/`PTV_boost-04`; `PTV_C2`; `PTV_Low_total`;
-  `PTV_Mid_3mm`; `Trachea`/`Pretraqueal`/`Traqueostomia` (CyC, ¿otro OAR nuevo como
-  Lobe_Temporal?); `RectumPTV` (resta sin separador); `PTV_Low!High` (resta entre
-  niveles, no sobre PTV genérico); `SpinalCord_PRV1`/`SpinalCord_PRVx`.
+Resuelto vía `paso2_pendientes_20_pacientes_resuelto.csv` (respuesta del usuario sobre
+`paso2_pendientes_20_pacientes.csv`), caso por caso:
 
-  **De la corrida de Prostata:** `BowelLarge`/`BowelSmall`/`BowelLargePRV01` (¿otro
-  OAR nuevo, "intestino grueso" distinto de Sigmoid/Bowel_Small? mismo patrón que
-  Lobe_Temporal — aparece también en un Pelvis CHHiP-like como `Bowel_Large`);
-  `PTV_ProstateBed` (¿caso de lecho prostático post-quirúrgico, target clínicamente
-  distinto de intacto?); `RectumCorregido`, `Colostomia`, `Protesis` (casos únicos);
-  `PTV_High100%`/`PTV_High95%`/`PTV_High69`/`PTV_High70`/`PTV_High_mod` (subdivisiones
-  de PTV por nivel de dosis o variantes puntuales, no claras); `RectoenPTV`/
-  `PRVRECTOENPTV`/`PTVSINRECTO`/`Bladder1` (un paciente con convención propia, resta
-  rectum-PTV en castellano sin separador reconocible); `PTV VS OK`/`pros`/`ves` (un
-  paciente con nombres muy no estándar, posible caso para revisar en Eclipse
-  directamente en vez de intentar resolver por nombre).
+47. **CyC — "desestimar estructura" (paciente se mantiene):** `Hippocampus_L/R`,
+    `SpinalCord_Aux` (ya resuelve via `SpinalCord_PRV05`), `Elbow`, `amigdala`/`supra`,
+    `PTV_Boost`/`PTV_boost-04`, `Lobe_Tem_PRV3_Lb`/`Rb` (ya resuelve via `Lobe_Tem_PRV3_L/R`).
+48. **CyC — 3 ambigüedades reales de recontoreo, resueltas por el usuario** (qué
+    contorno retener, cuál desestimar): `Cochlea_L1`→excluido (retiene `Cochlea_L`);
+    `Musc_Constrict1`→excluido (retiene `Musc_Constrict`); `OpticChiasmPRV03`→excluido
+    (retiene `OpticChiasm_PRV3` — requirió sacar el alias `opticchiasmprv03` de
+    `MANUAL_OAR_ALIASES`, porque el chequeo de alias corre antes que `exclude_names` y
+    lo tapaba). Los 3 nombres excluidos son únicos en todo el dataset (verificado con
+    `paso2_estructuras_por_paciente.csv`), sin riesgo de afectar otro paciente.
+49. **Pelvis — "desestimar estructura":** `Sigma`, `Duodenum`, `Stomach`, `Vulva`
+    (Stomach/Vulva cubren también los otros 2 pacientes con el mismo nombre),
+    `SacralPlexus`, `Bones`, `PTV_Uterus1` (mismo criterio que `PTV_Uterus`), `PTV_LN`,
+    `PTV_Lesion` (PTV_High ya es el target real de ese paciente).
+50. **Pelvis — "quitar paciente"** (igual criterio que Ovary: el nombre NO se agrega a
+    `exclude_names`, queda `unknown` a propósito para que un paciente futuro no
+    revisado con el mismo nombre siga fallando ruidoso): `PT_7a3de494ae747cdb`
+    (`PelvicBones`), `PT_95abfd12e84c4f1d` (`PRV_Rectum`), `PT_a067e0c9e98eb65c`
+    (`PTV_Rectum`), `PT_e3cd1ac3cecd73e3` (`eventracion`) → los 4 a `out_of_convention`.
+51. **`PT_c83d88c040c3a900` (Pelvis) — caso especial, nuevo mecanismo.** Único caso del
+    dataset con DOS contornos reales con volumen>0 para `PTV_High` (`PTV_High` 1583cc,
+    `PTV_High1` 1711cc) — confirmado por volumen antes de decidir (no se podía adivinar
+    cuál era cual). Decisión del usuario: el PTV real es `PTV_High1`. No se puede
+    resolver con alias/exclude_names global (`PTV_High` es el nombre canónico normal en
+    300+ pacientes). Se agregó: (a) alias global `ptv_high1`→nivel `high` en
+    `normalize_structure_name.py` (único paciente con ese nombre, sin riesgo); (b) nuevo
+    diccionario `_PATIENT_RAW_NAME_OVERRIDES` en `pipeline.py` — la ÚNICA forma de
+    "excepción por nombre, scopeada a un paciente puntual" del pipeline — que descarta
+    el `PTV_High` llano SOLO para este paciente. `PTV_Uterus`/`PTV_Uterus1`/
+    `PTV_LN_Pelvics`/`Vulva` de este mismo paciente resuelven via las reglas de arriba.
+52. **Prostata — "desestimar estructura":** `Stomach` (mismo nombre que en Pelvis,
+    cubierto por el ítem 49).
 
-- **`PTV_Mid01`/`PTV_Mid02` (+ sus formas `-04`) en CyC — frecuente (8+ pacientes).**
-  Esto es exactamente el caso que CHARTER/el prompt pide frenar explícitamente:
-  "cualquier paciente con más niveles de PTV que el protocolo de su sitio". A
-  propósito NO lo colapsé con la regla de duplicado numerado (#16) — acá el número
-  sí es semántico (¿Mid01 y Mid02 son dos volúmenes nodales separados del mismo
-  nivel de dosis? ¿se deberían unir?). Necesito tu criterio: ¿se unen en una sola
-  máscara `PTV_Mid`, se modelan como out_of_convention, o es otra cosa?
+**Resultado final: CyC 195/196 (99.5%), Pelvis 161/161 (100%), Prostata 146/146
+(100%). Total 502/503 (99.8%).**
 
-- **`Trachea`/`Pretraqueal`/`Traqueostomia` en CyC** — recurrente (5+ pacientes,
-  algunos con traqueostomía). Mismo tipo de decisión que `Lobe_Temporal` (#pendiente
-  arriba): ¿son OAR reales del protocolo CyC que faltan en la tabla, o quedan fuera?
+**1 caso nuevo surgido al resolver los 20** (no estaba en la lista original: quedaba
+tapado por `Hippocampus_L/R`, que fallaba primero): `PT_0e31af2ee9f039e5` tenía
+`Oral_Cavity` + `Cavity_Oral` con volumen>0 cada uno — misma familia de ambigüedad real
+de recontoreo que los ítems 48.
 
-- **Otras estructuras nuevas vistas una sola vez (CyC):** `Retina_L/R` + `Cornea_L/R`
-  (un paciente, subestructuras orbitarias finas); `Eye_R_PRV2mm` (PRV de Eye, no
-  modelado hoy); `Parotida_L-0.2`/`Parotida_R-0.2` (castellano + margen 2mm, ¿mismo
-  Parotid_L/R o geometría distinta?); `TemporalLobe_L/R`, `EyeBack_L`, `EyeFront_L`,
-  `Lips` (mismo paciente que resuelve distinto — `TemporalLobe` es el mismo concepto
-  que `Lobe_Temporal` con el orden de palabras invertido, va de la mano con esa
-  decisión); `amigdala`/`supra` (fragmentos en castellano, probablemente estructuras
-  nodales/amigdalinas no identificadas); `PTV_C2`, `PTV66`, `PTV_Mid_3mm`,
-  `PTV_Mid-04-ext` (variantes puntuales sin patrón claro). `PTV_Highext` (mismo patrón
-  "ext"). `Parotida_L-0.2`/`Parotida_R-0.2` (castellano + margen 2mm). `Eye_R_PRV2mm`.
-  `Elbow` (¿codo? ¿por qué en CyC?). Dos pacientes (`PT_559aefbb26262e5c`,
-  `PT_8a9d69ea4ef84f91`) usan una convención de nombres de PRV completamente distinta
-  (`PRV_Brainstem05`, `PRV_CochleaL03`, etc., prefijo en vez de sufijo) y uno de ellos
-  además tiene estructuras en castellano sin equivalente claro (`CuelloDer`, `CuelloIzq`,
-  `Nivel6`, `SCVIZQ`, `PTV_Intermediate`) — parecen casos aislados de un planificador/
-  época distinta, mejor revisarlos en Eclipse que intentar generalizar la regla para 2
-  pacientes.
+53. **`PT_0e31af2ee9f039e5` resuelto (usuario, 2026-10-15): "son idénticas, retener
+    Oral_Cavity".** Mismo patrón que el ítem 51 (`PTV_High1`): NO se puede sacar el
+    alias `cavity_oral`→`Oral_Cavity` globalmente — 5 de los 6 pacientes con
+    `Cavity_Oral` en todo el dataset (verificado con
+    `paso2_estructuras_por_paciente.csv`) dependen de ese alias como ÚNICA fuente de
+    Oral_Cavity (no tienen el nombre llano). Se agregó una segunda entrada a
+    `_PATIENT_RAW_NAME_OVERRIDES` (pipeline.py) que descarta `Cavity_Oral` SOLO para
+    `PT_0e31af2ee9f039e5`. Como el cambio es solo código (no toca ningún YAML de
+    armonización), el `harmonization_hash` no cambió — solo hizo falta reprocesar CyC,
+    Pelvis/Prostata siguieron válidos tal cual.
+
+**Resultado final: 503/503 (100%) en los 3 sitios.**
+
+- **Dos pacientes CyC con convención de PRV propia** (`PT_559aefbb26262e5c`,
+  `PT_8a9d69ea4ef84f91`, ya resueltos vía alias) conservan estructuras en castellano sin
+  decisión: `Lips`, `TemporalLobe_L/R` (ya cubierto por la regla de Lobe_Temporal),
+  `Parotida_L-0.2`/`Parotida_R-0.2` ya excluidas — sin impacto en el resultado, solo
+  quedan como nota para revisar en Eclipse si se quiere exprimir el último detalle.

@@ -35,9 +35,14 @@ roles:
     - Glnd_Thyroid    # [CyC]
     - Joint_TM_L    # [CyC]
     - Joint_TM_R    # [CyC]
+    - Kidney_L    # [Pelvis] MANUAL (ver MANUAL_ROLES, convert_constraints.py:MANUAL_OARS)
+    - Kidney_R    # [Pelvis] MANUAL (ver MANUAL_ROLES, convert_constraints.py:MANUAL_OARS)
+    - Kidneys    # [Pelvis] MANUAL (ver MANUAL_ROLES, convert_constraints.py:MANUAL_OARS)
     - Larynx    # [CyC]
     - Lens_L    # [CyC]
     - Lens_R    # [CyC]
+    - Lobe_Temporal_PRV3_L    # [CyC]   # PRV: geometría del serial MANUAL (ver MANUAL_ROLES, convert_constraints.py:MANUAL_OARS)
+    - Lobe_Temporal_PRV3_R    # [CyC]   # PRV: geometría del serial MANUAL (ver MANUAL_ROLES, convert_constraints.py:MANUAL_OARS)
     - Musc_Constrict    # [CyC]
     - OpticChiasm_PRV3    # [CyC]   # PRV: geometría del serial
     - OpticNrv_PRV03_L    # [CyC]   # PRV: geometría del serial
@@ -49,7 +54,7 @@ roles:
     - Pituitary    # [CyC]
     - Rectum    # [Pelvis,Prostata]
     - Sigmoid    # [Prostata]
-    - SpinalCord_PRV05    # [CyC]   # PRV: geometría del serial
+    - SpinalCord_PRV05    # [CyC,Pelvis]   # PRV: geometría del serial MANUAL (ver MANUAL_ROLES, convert_constraints.py:MANUAL_OARS)
 
 # ---- 2. ALIAS (variante -> rol; derivados de nombresPosibles, ya limpios) ----
 #      Extender a mano con variantes vistas al minar (castellano, lateralidad).
@@ -59,6 +64,10 @@ aliases:
   "bowel_bag": Bowel_Small   # manual (ver MANUAL_OAR_ALIASES)
   "bowel_p": Bowel_Small   # manual (ver MANUAL_OAR_ALIASES)
   "bowelbag": Bowel_Small   # manual (ver MANUAL_OAR_ALIASES)
+  "brachialp_l_prv": BrachPlex_PRV5_L   # manual (ver MANUAL_OAR_ALIASES)
+  "brachialp_r_prv": BrachPlex_PRV5_R   # manual (ver MANUAL_OAR_ALIASES)
+  "brainstem_prv05": Brainstem_PRV05   # manual (ver MANUAL_OAR_ALIASES)
+  "brainstemprv": Brainstem_PRV05   # manual (ver MANUAL_OAR_ALIASES)
   "brchplex_l_prv05": BrachPlex_PRV5_L   # manual (ver MANUAL_OAR_ALIASES)
   "brchplex_r_prv05": BrachPlex_PRV5_R   # manual (ver MANUAL_OAR_ALIASES)
   "cabeza_femoral_l": FemoralHead_L   # manual (ver MANUAL_OAR_ALIASES)
@@ -68,18 +77,41 @@ aliases:
   "colon_sigmoid": Sigmoid   # manual (ver MANUAL_OAR_ALIASES)
   "lens left": Lens_L   # manual (ver MANUAL_OAR_ALIASES)
   "lens right": Lens_R   # manual (ver MANUAL_OAR_ALIASES)
-  "opticchiasmprv03": OpticChiasm_PRV3   # manual (ver MANUAL_OAR_ALIASES)
+  "lobe_tem_prv3_l": Lobe_Temporal_PRV3_L   # manual (ver MANUAL_OAR_ALIASES)
+  "lobe_tem_prv3_r": Lobe_Temporal_PRV3_R   # manual (ver MANUAL_OAR_ALIASES)
   "opticnrv_l_prv03": OpticNrv_PRV03_L   # manual (ver MANUAL_OAR_ALIASES)
   "opticnrv_r_prv03": OpticNrv_PRV03_R   # manual (ver MANUAL_OAR_ALIASES)
   "penilbulb": PenileBulb   # manual (ver MANUAL_OAR_ALIASES)
   "pituitarygland": Pituitary   # manual (ver MANUAL_OAR_ALIASES)
+  "prv_brachialpl05": BrachPlex_PRV5_L   # manual (ver MANUAL_OAR_ALIASES)
+  "prv_brachialpr05": BrachPlex_PRV5_R   # manual (ver MANUAL_OAR_ALIASES)
+  "prv_brainstem05": Brainstem_PRV05   # manual (ver MANUAL_OAR_ALIASES)
+  "prv_lobetempl03": Lobe_Temporal_PRV3_L   # manual (ver MANUAL_OAR_ALIASES)
+  "prv_lobetempl_03": Lobe_Temporal_PRV3_L   # manual (ver MANUAL_OAR_ALIASES)
+  "prv_lobetempr03": Lobe_Temporal_PRV3_R   # manual (ver MANUAL_OAR_ALIASES)
+  "prv_lobetempr_03": Lobe_Temporal_PRV3_R   # manual (ver MANUAL_OAR_ALIASES)
+  "prv_opticc03": OpticChiasm_PRV3   # manual (ver MANUAL_OAR_ALIASES)
+  "prv_opticnl03": OpticNrv_PRV03_L   # manual (ver MANUAL_OAR_ALIASES)
+  "prv_opticnr03": OpticNrv_PRV03_R   # manual (ver MANUAL_OAR_ALIASES)
+  "prv_spinalcord05": SpinalCord_PRV05   # manual (ver MANUAL_OAR_ALIASES)
   "ptv": PTV_High   # manual (ver MANUAL_ALIASES)
   "ptv_high-04": PTV_High
+  "ptv_high1": PTV_High   # manual (ver MANUAL_ALIASES)
   "ptv_high_p": PTV_High   # manual (ver MANUAL_ALIASES)
+  "ptv_intermediate": PTV_Mid   # manual (ver MANUAL_ALIASES)
   "ptv_low-04": PTV_Low
   "ptv_mid-04": PTV_Mid
   "ptv_ptta": PTV_High   # manual (ver MANUAL_ALIASES)
   "rectum_p": Rectum   # manual (ver MANUAL_OAR_ALIASES)
+  "rectumcorregido": Rectum   # manual (ver MANUAL_OAR_ALIASES)
+  "spinal canal": SpinalCord_PRV05   # manual (ver MANUAL_OAR_ALIASES)
+  "spinalcanal": SpinalCord_PRV05   # manual (ver MANUAL_OAR_ALIASES)
+  "spinalcanal_prv": SpinalCord_PRV05   # manual (ver MANUAL_OAR_ALIASES)
+  "spinalcanal_prv5": SpinalCord_PRV05   # manual (ver MANUAL_OAR_ALIASES)
+  "spinalcanalprv05": SpinalCord_PRV05   # manual (ver MANUAL_OAR_ALIASES)
+  "spinalcord_prv": SpinalCord_PRV05   # manual (ver MANUAL_OAR_ALIASES)
+  "spinalcord_prv5": SpinalCord_PRV05   # manual (ver MANUAL_OAR_ALIASES)
+  "spinalcordprv": SpinalCord_PRV05   # manual (ver MANUAL_OAR_ALIASES)
   "tmjoint_l": Joint_TM_L   # manual (ver MANUAL_OAR_ALIASES)
   "tmjoint_r": Joint_TM_R   # manual (ver MANUAL_OAR_ALIASES)
   # --- extensión manual (ejemplos; completar al minar) ---
@@ -92,7 +124,9 @@ aliases:
 #      Se reportan, no se modelan. Distinto de ignore_patterns: esto es lista explícita,
 #      no patrón, porque son nombres concretos con semántica clínica, no helpers.) ----
 exclude_names:
+  - "Bladder1"
   - "BladderPTV"
+  - "Bones"
   - "Bowel_PRV"
   - "BrachialPlex_L"
   - "BrachialPlex_R"
@@ -100,34 +134,97 @@ exclude_names:
   - "BrachialPlexus_R"
   - "Brainstem"
   - "Chiasm"
+  - "CochleaLPRV"
+  - "CochleaRPRV"
+  - "Cochlea_L1"
   - "Cochlea_L_PRV03"
   - "Cochlea_PRV03_L"
   - "Cochlea_PRV03_R"
   - "Cochlea_R_PRV03"
+  - "Cornea_L"
+  - "Cornea_R"
+  - "CuelloDer"
+  - "CuelloIzq"
+  - "Duodenum"
+  - "Elbow"
+  - "EyeBack_L"
+  - "EyeFront_L"
+  - "Eye_R_PRV2mm"
+  - "Heart"
+  - "Hippocampus_L"
+  - "Hippocampus_R"
+  - "Liver"
+  - "Lobe_Tem_PRV3_Lb"
+  - "Lobe_Tem_PRV3_Rb"
+  - "Lobe_Temporal_L"
+  - "Lobe_Temporal_R"
+  - "Lung_L"
+  - "Lung_R"
+  - "Lungs"
+  - "Musc_Constrict1"
+  - "Nivel6"
   - "OpticChiasm"
+  - "OpticChiasmPRV03"
   - "OpticChiasm_PRV2"
   - "OpticNrv_L"
   - "OpticNrv_PRV02_L"
   - "OpticNrv_PRV02_R"
   - "OpticNrv_R"
+  - "PRVRECTOENPTV"
+  - "PRV_CochleaL03"
+  - "PRV_CochleaR03"
+  - "PTVSINRECTO"
+  - "PTV_Boost"
+  - "PTV_High100%"
+  - "PTV_High69"
+  - "PTV_High70"
+  - "PTV_High95%"
+  - "PTV_High_mod"
+  - "PTV_LN"
   - "PTV_LN_Iliac"
+  - "PTV_LN_Inguin"
   - "PTV_LN_Inguinofe"
+  - "PTV_LN_Pelvic"
   - "PTV_LN_Pelvics"
+  - "PTV_Lesion"
+  - "PTV_Low!High"
   - "PTV_Low_total"
+  - "PTV_Mid01"
+  - "PTV_Mid02"
   - "PTV_Pelvics"
   - "PTV_Pelvis"
   - "PTV_Prostate"
   - "PTV_SeminalVes"
   - "PTV_Uterurs"
   - "PTV_Uterus"
+  - "PTV_Uterus1"
   - "PTV_total"
   - "PTVn"
   - "PTVn_"
   - "PTVp"
   - "PTVp_"
+  - "Parotida_L-0.2"
+  - "Parotida_R-0.2"
+  - "Pretraqueal"
+  - "RectoenPTV"
   - "RectumPTV"
+  - "Retina_L"
+  - "Retina_R"
+  - "SCVIZQ"
+  - "SacralPlexus"
+  - "Sigma"
   - "SpinalCord"
+  - "SpinalCord_Aux"
   - "SpinalCord_PRV1"
+  - "Stomach"
+  - "TemporalLobe_L"
+  - "TemporalLobe_R"
+  - "Trachea"
+  - "Traqueostoma"
+  - "Traqueostomia"
+  - "Vulva"
+  - "amigdala"
+  - "supra"
 
 # ---- 4. IGNORE (SIN *_prv: los PRV son geometría de seriales, no se ignoran) ----
 ignore_patterns:
@@ -158,6 +255,8 @@ ignore_patterns:
                         # calculo, ningun rol canonico contiene "cal"
   - "none"              # artefacto de export (nombre literal "None")
   - "ctrl*"             # forma corta de "control" (ver *control*)
+  - "*contraste*"       # agente de contraste marcado como ROI (Pelvis), mismo
+                        # tratamiento que Cal/Caliente (decision del usuario 2026-10-14)
 
 # ---- 5. QA GATE (dosis ABSOLUTA cruda Gy; D95 vs Rx_nivel; banda única) ----
 qa_gate:
@@ -183,6 +282,7 @@ patient_metadata_schema:
   qa_flags: []
   aliases_applied: []
   harmonization_hash: str      # hash de los YAML de armonización usados en este NPZ
+  warnings: []                 # ej. estructuras desconocidas ignoradas (solo en pacientes con excepción registrada)
 
 # ---- APÉNDICE (informativo) ----
 # Estructuras EXCLUIDAS de intención (CTV / restas):

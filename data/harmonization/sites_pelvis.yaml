@@ -32,6 +32,12 @@ oars:
       - {metric: {type: V, param: 50.0, param_unit: Gy}, limit: {op: le, value: 20.0, unit: pct_vol}, priority: 3}   # FemoralHead_R: V50Gy
       - {metric: {type: V, param: 65.0, param_unit: Gy}, limit: {op: le, value: 5.0, unit: pct_vol}, priority: 3}   # FemoralHead_R: V65Gy
       - {metric: {type: Dmax}, limit: {op: le, value: 70.0, unit: Gy}, priority: 3}   # FemoralHead_R: Dmax
+  Kidney_L:
+      - {metric: {type: Dmean}, limit: {op: le, value: 15.0, unit: Gy}, priority: 3}   # Kidney_L: Dmedia (manual, Paso 2 — no viene de la plantilla)
+  Kidney_R:
+      - {metric: {type: Dmean}, limit: {op: le, value: 15.0, unit: Gy}, priority: 3}   # Kidney_R: Dmedia (manual, Paso 2 — no viene de la plantilla)
+  Kidneys:
+      - {metric: {type: Dmean}, limit: {op: le, value: 15.0, unit: Gy}, priority: 3}   # Kidneys: Dmedia (manual, Paso 2 — no viene de la plantilla)
   PenileBulb:
       - {metric: {type: V, param: 48.0, param_unit: Gy}, limit: {op: le, value: 3.0, unit: cm3}, priority: 3}   # PenileBulb: V48Gy
       - {metric: {type: Dmean}, limit: {op: le, value: 50.0, unit: Gy}, priority: 3}   # PenileBulb: Dmedia
@@ -42,3 +48,5 @@ oars:
       - {metric: {type: V, param: 65.0, param_unit: Gy}, limit: {op: le, value: 25.0, unit: pct_vol}, priority: 1}   # Rectum: V65Gy
       - {metric: {type: V, param: 70.0, param_unit: Gy}, limit: {op: le, value: 20.0, unit: pct_vol}, priority: 1}   # Rectum: V70Gy
       - {metric: {type: V, param: 75.0, param_unit: Gy}, limit: {op: le, value: 15.0, unit: pct_vol}, priority: 1}   # Rectum: V75Gy
+  SpinalCord_PRV05:
+      - {metric: {type: Dmax}, limit: {op: le, value: 50.0, unit: Gy}, priority: 1}   # SpinalCord_PRV05: Dmax (manual, Paso 2 — no viene de la plantilla)

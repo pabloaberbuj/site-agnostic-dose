@@ -22,30 +22,121 @@ out_of_convention:
   # Pelvis con retroperitoneo incluido en el campo, sin nomenclar como tal (campos en Y ~38-40 cm
   # vs ~25 cm de una pelvis normal). Dosis de naturaleza distinta (baño nodal): fuera del train.
   # Ya estaban exportados: quedan como primeros casos del conjunto reservado (zero-shot).
-  PT_49f9ceef1c10627d: {site: Pelvis, motivo: retroperitoneo_no_nomenclado}   # TargetVolumeID PTV_Low
-  PT_258346f1e40fbf8f: {site: Pelvis, motivo: retroperitoneo_no_nomenclado}   # TargetVolumeID PTV_total
+  PT_49f9ceef1c10627d: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # TargetVolumeID PTV_Low; Y=400mm
+  PT_258346f1e40fbf8f: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # TargetVolumeID PTV_total; Y=400mm
+  # Pelvis, campo extendido confirmado: de los 49 casos con anatomia no-pelvica de Paso 2
+  # (ver ronda 8/9 en paso2_decisiones_autonomas.md), el usuario decidio que SpinalCord/
+  # SpinalCanal, Ovary_*, Liver/Heart/Lung_* son manejables a nivel de tabla (constraint o
+  # exclude_names) SIN sacar al paciente, pero Kidney_* necesita distinguir caso por caso:
+  # tamano Y del campo de tratamiento (jaw Y/ASYMY del RTPLAN) > 300mm -> campo realmente
+  # extendido/retroperitoneal (riñon no es incidental); <= 300mm -> riñon contorneado por
+  # completitud, el paciente queda y el constraint de Kidney se le aplica normal. Umbral y
+  # criterio del usuario (ejemplo dado: PT_628153252f3bba09, Y=400mm). Resultado sobre los
+  # 36 pacientes con Kidney: 13 por encima de 300mm (acá, incluye los 2 ya conocidos de
+  # arriba), 23 por debajo quedan en el train con Kidney modelado.
+  PT_5bbe3af4da4a9eeb: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # Y=400mm
+  PT_628153252f3bba09: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # Y=400mm (ejemplo del usuario)
+  PT_36a671807790bc0f: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # Y=399mm
+  PT_85558912476286d3: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # Y=397mm
+  PT_7bdc295a8ab09caa: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # Y=395mm
+  PT_1d67f4a0b9f4375f: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # Y=388mm; tambien tiene Ovary_L/R
+  PT_05831f9b1f6c5382: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # Y=387mm
+  PT_2a4b9c18a3dabbbb: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # Y=377mm
+  PT_80b33240f35d89c3: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # Y=375mm
+  PT_e222456179f16853: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # Y=328mm
+  PT_7da7b2507f0ac933: {site: Pelvis, motivo: campo_extendido_Y_mayor_300mm}   # Y=321mm; tambien tiene SpinalCord_PRVx (margen no estandar)
   # CyC con High + Low y SIN PTV_Mid (7 ausente, 5 con volumen 0): esquema de prescripción distinto
   # del protocolo de 3 niveles. Primeros casos de "otra prescripción": apartados para el experimento
   # multi-protocolo (inferencia directa vs reentrenamiento). protocol_id PENDIENTE: falta confirmar
   # la Rx del Low (el D95 por nivel del QA gate la muestra; ¿54.45 o 59.4?).
   PT_0325846a2bdff29e: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
-  PT_0a2f34e2e0379df0: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
   PT_14b63f3f19bafbce: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
-  PT_1b461e4fa0109c7b: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
-  PT_21cb7f818391b0c4: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
   PT_40ffbce41ee8a2a1: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
   PT_46e345b551a2fbc1: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
   PT_56f3d5797457174f: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
   PT_65ebc54914351e57: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
-  PT_6a4269d796a3ab42: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
   PT_7b174492f8ad48eb: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
   PT_a34f7226d9d2aabc: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
-
+  # 2 mas de la misma categoria (PTV_Mid01 Y PTV_Mid02 con volumen rasterizado = 0.0 cm3,
+  # confirmado 2026-10-14 al calcular volumenes reales sobre los 22 pacientes CyC con
+  # nombres Mid01/Mid02): mismo caso que los 12 de arriba, Mid efectivamente ausente.
+  PT_9bcdc56462d32b07: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  PT_d9f1f4e4899ded44: {site: CyC, motivo: protocolo_distinto_sin_PTV_Mid}
+  # CyC (decision del usuario 2026-10-14): PTV_Mid01/PTV_Mid02 CON volumen>0 (confirmado por
+  # calculo real, no solo presencia del nombre) = mas niveles de PTV que el protocolo
+  # declarado (High/Mid/Low) -> sacar el paciente entero (distinto del caso de volumen=0
+  # de arriba, que solo desestima la estructura). PT_514bde984025ac6d estaba en reviewed_ok
+  # (TargetVolumeID_zOptPTV_High_mal_asignado) — el motivo nuevo pesa mas, se movio para aca.
+  PT_0a2f34e2e0379df0: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid02=294.7cm3; RECATEGORIZADO (estaba en protocolo_distinto_sin_PTV_Mid, pero SI tiene volumen real)
+  PT_1b461e4fa0109c7b: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=550.2cm3 Mid02=61.7cm3; RECATEGORIZADO (idem)
+  PT_21cb7f818391b0c4: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=454.1cm3; RECATEGORIZADO (idem)
+  PT_6a4269d796a3ab42: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=66.6cm3 Mid02=225.0cm3; RECATEGORIZADO (idem)
+  PT_0a7a953ed4b35e0a: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=57.7cm3
+  PT_1a7859ebcff2d4b0: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=49.5cm3
+  PT_33fa46cf8ee0fe3a: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=41.0cm3
+  PT_42eaebd4caead946: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=31.9cm3
+  PT_514bde984025ac6d: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=89.4cm3; ex-reviewed_ok
+  PT_6bf48f3d18e0d6c1: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01-04=327.5cm3
+  PT_8b7cfdb3b74f6e06: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=739.7cm3 Mid02=63.9cm3
+  PT_b2e4121108438024: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=35.3cm3
+  PT_d20227507e1af86c: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=46.3cm3
+  PT_d6bfd678779feedf: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=42.6cm3
+  PT_d6e12e5afb0448a4: {site: CyC, motivo: mas_niveles_ptv_que_protocolo_mid01_02}   # Mid01=363.2cm3
+  # CyC (decision del usuario 2026-10-14): Trachea/EyeBack/EyeFront indican extension
+  # mediastinica/orbitaria real -> sacar al paciente (a diferencia de Traqueostomia/
+  # Pretraqueal, que solo se desestiman como estructura, ver exclude_names). 2 de estos
+  # (PT_29f05c0351fa8932, PT_3560368155841ffd) estaban en reviewed_ok por otro motivo
+  # (cavum) — se movieron para acá, el motivo de Trachea pesa mas.
+  PT_1c53a9b84029afec: {site: CyC, motivo: trachea_o_eye_front_back}
+  PT_1f99cbd2a709b242: {site: CyC, motivo: trachea_o_eye_front_back}
+  PT_29f05c0351fa8932: {site: CyC, motivo: trachea_o_eye_front_back}
+  PT_3560368155841ffd: {site: CyC, motivo: trachea_o_eye_front_back}
+  PT_5b6a74017a45908c: {site: CyC, motivo: trachea_o_eye_front_back}
+  PT_909a424ff2e5e6d8: {site: CyC, motivo: trachea_o_eye_front_back}   # Trachea1
+  PT_ac70c40cbcd1ef75: {site: CyC, motivo: trachea_o_eye_front_back}
+  PT_bc3d6255ad42ab92: {site: CyC, motivo: trachea_o_eye_front_back}
+  PT_c6a05735c3c0c43e: {site: CyC, motivo: trachea_o_eye_front_back}
+  # CyC (decision del usuario 2026-10-14): convencion de nombres/PTV demasiado propia
+  # de este paciente puntual, no generalizable.
+  PT_caefecceac8746a3: {site: CyC, motivo: convencion_propia_PTV_C2}   # tambien tiene SpinalCord_PRV1 (margen no estandar)
+  PT_271fb2489b4a962c: {site: CyC, motivo: convencion_propia_PTV66}
+  PT_ee9e7d85f565a70b: {site: CyC, motivo: convencion_propia_PTV_Mid_3mm}
+  # Pelvis (decision del usuario 2026-10-14, CORRECCION de una ronda anterior donde Ovary
+  # habia quedado mezclado por error con Liver/Heart/Lung en exclude_names): "Los que tengan
+  # ovario o sus variantes excluirlos" = sacar el PACIENTE (distinto de Liver/Heart/Lung, que
+  # solo desestiman la estructura). 7 pacientes con Ovary_L/Ovary_R(1) detectados; uno
+  # (PT_1d67f4a0b9f4375f) ya estaba arriba por campo_extendido_Y_mayor_300mm, no se duplica.
+  # PT_01bb8559edc26ae5 y PT_129a4d7fa81eedbd son los 2 pacientes "CHHiP" de Pelvis que
+  # quedaban pendientes de revision (ver paso2_decisiones_autonomas.md) — Ovary explica al
+  # menos parte de su anatomia no-pelvica.
+  PT_01bb8559edc26ae5: {site: Pelvis, motivo: ovario_detectado}
+  PT_0ef6f1c1197c2c35: {site: Pelvis, motivo: ovario_detectado}   # Ovary_R1
+  PT_129a4d7fa81eedbd: {site: Pelvis, motivo: ovario_detectado}
+  PT_9963a51428ed9e27: {site: Pelvis, motivo: ovario_detectado}
+  PT_aa40bc86f6a09376: {site: Pelvis, motivo: ovario_detectado}
+  PT_fd684c2e5bb0f675: {site: Pelvis, motivo: ovario_detectado}
+  # Prostata (decision del usuario 2026-10-14): estructuras reales que ameritan sacar al
+  # paciente (no solo desestimar la estructura).
+  PT_17f7da3f2f357e52: {site: Prostata, motivo: colostomia}
+  PT_361ff9c998e2a4fc: {site: Prostata, motivo: colostomia}
+  PT_96b55aa85d068717: {site: Prostata, motivo: protesis}
+  PT_758869b882b76b90: {site: Prostata, motivo: ptv_prostate_bed}   # lecho prostatico, target distinto de intacto
+  PT_92c9d5a00753519e: {site: Prostata, motivo: convencion_propia_nombres_no_estandar}   # "PTV VS OK"
+  PT_c1ba3262f2e7e342: {site: Prostata, motivo: bowellarge_prv01_margen_sbrt}   # ex-reviewed_ok (plan_sum_tratamiento_lejano)
+  # Pelvis (decision del usuario 2026-10-15, resolucion de los 20 pendientes — ver
+  # paso2_pendientes_20_pacientes_resuelto.csv): "quitar paciente". A diferencia de
+  # Vulva/Stomach/Sigma/etc. de la misma ronda, estos nombres NO se agregan a
+  # exclude_names a proposito: quedan 'unknown' para que un paciente FUTURO no revisado
+  # con el mismo nombre siga fallando ruidoso (mismo criterio que Ovary, ver decision #41).
+  PT_7a3de494ae747cdb: {site: Pelvis, motivo: pelvicbones}
+  PT_95abfd12e84c4f1d: {site: Pelvis, motivo: prv_rectum_convencion_propia}
+  PT_a067e0c9e98eb65c: {site: Pelvis, motivo: ptv_rectum_convencion_propia}
+  PT_e3cd1ac3cecd73e3: {site: Pelvis, motivo: eventracion}
 reviewed_ok:
   # CyC: cavum, PTV solapado con PRV de quiasma/nervios ópticos (prioridad mayor al PTV);
   # D95 de PTV por debajo de banda justificado clínicamente.
-  - {id: PT_29f05c0351fa8932, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos}
-  - {id: PT_3560368155841ffd, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos; TargetVolumeID_zOptPTV_High_mal_asignado_cota_inferior_versiones}
+  # (PT_29f05c0351fa8932 y PT_3560368155841ffd se movieron a out_of_convention: tienen
+  # Trachea/EyeBack/EyeFront, ver decision del usuario 2026-10-14 mas abajo.)
   - {id: PT_40b0f1826c4014c8, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos}
   - {id: PT_98d042ec47757136, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos}
   - {id: PT_a0d0915d25c4dfa0, site: CyC, motivo: cavum_PTV_solapa_PRV_quiasma_opticos}
@@ -68,8 +159,8 @@ reviewed_ok:
   # PTV_High). Resuelve a PTV_High. NO aliasar PTV_Prostate. Conteo de versiones = cota inferior.
   - {id: PT_2801fef819714530, site: Prostata, motivo: TargetVolumeID_PTV_Prostate_mas_chico_cota_inferior_versiones}
   - {id: PT_5787d1d3258de95d, site: Prostata, motivo: TargetVolumeID_PTV_Prostate_mas_chico_cota_inferior_versiones}
-  # Próstata: plan sum con tratamiento lejano; usable.
-  - {id: PT_c1ba3262f2e7e342, site: Prostata, motivo: plan_sum_tratamiento_lejano}
+  # (PT_c1ba3262f2e7e342 se movio a out_of_convention: tiene BowelLargePRV01, margen de
+  # SBRT, decision del usuario 2026-10-14 — pesa mas que el plan sum lejano.)
   # Próstata: D95 92.1% revisado en Eclipse, ok.
   - {id: PT_b1b995a33bfa44ab, site: Prostata, motivo: D95_bajo_banda_revisado_ok}
   # Pelvis: TargetVolumeID 'PTVp' = PTV primario. PTV_High = PTVp + PTVn (primario + nodal). Se elige
@@ -82,4 +173,5 @@ reviewed_ok:
   # CyC: TargetVolumeID asignado a una estructura de optimización (zRing/zOpt) por error; el plan
   # va al PTV recortado. PTV resuelve bien. Conteo de versiones = cota inferior.
   - {id: PT_348d801fd34b2a81, site: CyC, motivo: TargetVolumeID_zRingPTV_High_mal_asignado_cota_inferior_versiones}
-  - {id: PT_514bde984025ac6d, site: CyC, motivo: TargetVolumeID_zOptPTV_High_mal_asignado_cota_inferior_versiones}
+  # (PT_514bde984025ac6d se movio a out_of_convention: tambien tiene PTV_Mid01 con volumen
+  # real, decision del usuario 2026-10-14 sobre mas_niveles_ptv_que_protocolo_mid01_02.)

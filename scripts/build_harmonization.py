@@ -30,13 +30,18 @@ MANUAL_ALIASES = {v: 'PTV_' + lvl.capitalize() for v, lvl in PTV_NAME_ALIASES.it
 # de palabras, abreviatura o padding de dígito del margen PRV — no una estructura distinta.
 MANUAL_OAR_ALIASES = {
     'cavity_oral': 'Oral_Cavity',                      # orden de palabras invertido
+    'brainstem_prv05': 'Brainstem_PRV05',               # mayuscula distinta en "Stem" (BrainStem)
     'cabeza_femoral_l': 'FemoralHead_L',                # castellano
     'cabeza_femoral_r': 'FemoralHead_R',
     'brchplex_l_prv05': 'BrachPlex_PRV5_L',             # abrev. "Brch" + orden L/PRV invertido
     'brchplex_r_prv05': 'BrachPlex_PRV5_R',
     'opticnrv_l_prv03': 'OpticNrv_PRV03_L',             # orden L/PRV invertido
     'opticnrv_r_prv03': 'OpticNrv_PRV03_R',
-    'opticchiasmprv03': 'OpticChiasm_PRV3',             # mismo margen (3mm), sin guion bajo
+    # 'opticchiasmprv03': 'OpticChiasm_PRV3' SACADO 2026-10-15: el unico paciente real
+    # con este nombre (PT_e5dde7390b2a4567) lo tiene COEXISTIENDO con 'OpticChiasm_PRV3'
+    # (2 contornos reales, ambiguedad) — decision del usuario: retener OpticChiasm_PRV3,
+    # desestimar OpticChiasmPRV03. Pasa a EXCLUDE_NAMES (si seguia aca como alias, el
+    # chequeo de alias corre ANTES que exclude_names y lo tapaba).
     'bowel_bag': 'Bowel_Small',                         # sinonimo frecuente (Prostata), mismo organo
     'bowelbag': 'Bowel_Small',                          # idem, sin guion bajo
     'colon_sigmoid': 'Sigmoid',                         # muy frecuente (Prostata)
@@ -50,6 +55,62 @@ MANUAL_OAR_ALIASES = {
     'bladder_p': 'Bladder',                             # sufijo _P visto en un set propio de un plan
     'bowel_p': 'Bowel_Small',
     'rectum_p': 'Rectum',
+    # Prostata (decision del usuario 2026-10-14): "RectumCorregido reemplaza a Rectum" ->
+    # mismo organo, version corregida de un recontoreo. Si coexisten ambos con volumen>0,
+    # el desempate generico de pipeline.py (ver tambien criterio 'prv') prefiere el que
+    # dice "corregido" en el nombre crudo (geometria mas reciente/confiable).
+    'rectumcorregido': 'Rectum',
+    # Lobe_Temporal_PRV3_L/R: mismo margen (3mm), al menos 4 convenios de nombre distintos
+    # vistos en datos reales (abreviatura, prefijo vs sufijo, con/sin guion bajo).
+    'lobe_tem_prv3_l': 'Lobe_Temporal_PRV3_L',
+    'lobe_tem_prv3_r': 'Lobe_Temporal_PRV3_R',
+    'prv_lobetempl_03': 'Lobe_Temporal_PRV3_L',
+    'prv_lobetempr_03': 'Lobe_Temporal_PRV3_R',
+    'prv_lobetempl03': 'Lobe_Temporal_PRV3_L',
+    'prv_lobetempr03': 'Lobe_Temporal_PRV3_R',
+    # Pelvis (decision del usuario 2026-10-14): SpinalCord/SpinalCanal, con o sin PRV
+    # explicito, es la misma geometria serial que SpinalCord_PRV05 (ya canonico en CyC).
+    # El canal oseo es de por si un proxy natural de "cordon + margen" -> se trata igual
+    # que el PRV aunque el nombre no diga "PRV".
+    'spinalcanal': 'SpinalCord_PRV05',
+    'spinalcanal_prv': 'SpinalCord_PRV05',
+    'spinalcanalprv05': 'SpinalCord_PRV05',
+    'spinalcanal_prv5': 'SpinalCord_PRV05',
+    # NOTA: 'spinalcord_prvx' (margen "x" = no especificado, visto en Pelvis) NO se alias
+    # aca: decision del usuario 2026-10-14 es "eliminar paciente" (margen no estandar, no
+    # se funde con el 50Gy/45Gy de SpinalCord_PRV05) — queda 'unknown' adrede. El paciente
+    # real visto con ese nombre (PT_7da7b2507f0ac933) ya estaba out_of_convention por otro
+    # motivo (campo extendido); ver patient_exceptions.yaml.
+    # 'SpinalCord_PRV1' (CyC, margen 1mm) SI va a EXCLUDE_NAMES mas abajo, a pesar de ser la
+    # misma decision ("eliminar paciente"): dejarlo 'unknown' no funciona por un bug de
+    # interaccion con la regla de duplicado numerado (name_resolver.py) — le saca el "1"
+    # final, "SpinalCord_PRV" (sin digito) YA es alias valido (margen estandar), entonces
+    # SpinalCord_PRV1 termina resolviendo de todas formas, pero generando ambiguedad con
+    # SpinalCord_PRV05 (PipelineError, el paciente ni siquiera genera NPZ reservado — peor
+    # que excluir la estructura). El unico paciente real (PT_caefecceac8746a3) ya esta
+    # out_of_convention por otro motivo (PTV_C2), asi que el resultado final (reservado, no
+    # en train) es el mismo con exclude_names que con "unknown".
+    'spinalcord_prv': 'SpinalCord_PRV05',
+    'spinalcord_prv5': 'SpinalCord_PRV05',
+    'spinal canal': 'SpinalCord_PRV05',
+    # CyC (decision del usuario 2026-10-14, revision de los casos de PRV-con-prefijo):
+    # "PRV_<Organo><margen>" o "<Organo>PRV" (sin margen explicito, se asume el margen
+    # estandar del organo) en vez del convenio sufijo "<Organo>_PRV<margen>_<Lado>".
+    # Mismo margen -> mismo rol, no una estructura distinta. Visto en 2 pacientes con
+    # convenio propio (PT_559aefbb26262e5c, PT_8a9d69ea4ef84f91); enumerado explicito
+    # (no regex generico) porque las abreviaturas de organo varian demasiado para una
+    # regla unica confiable.
+    'prv_brainstem05': 'Brainstem_PRV05',
+    'brainstemprv': 'Brainstem_PRV05',
+    'prv_spinalcord05': 'SpinalCord_PRV05',
+    'spinalcordprv': 'SpinalCord_PRV05',
+    'prv_brachialpl05': 'BrachPlex_PRV5_L',
+    'prv_brachialpr05': 'BrachPlex_PRV5_R',
+    'brachialp_l_prv': 'BrachPlex_PRV5_L',
+    'brachialp_r_prv': 'BrachPlex_PRV5_R',
+    'prv_opticc03': 'OpticChiasm_PRV3',
+    'prv_opticnl03': 'OpticNrv_PRV03_L',
+    'prv_opticnr03': 'OpticNrv_PRV03_R',
 }
 
 # Estructuras reales (NO ruido de optimización, van a 'exclude' no a 'ignore') que duplican
@@ -59,10 +120,34 @@ MANUAL_OAR_ALIASES = {
 # pre-margen que el template no usa. Mismo criterio en ambos sentidos: si el canónico de la
 # plantilla es el PRV, el órgano llano sobra; si el canónico es el órgano llano (ej. Cochlea,
 # no serial en este protocolo), el PRV extra sobra.
+# Roles que NO salen de ninguna plantilla (no hay nombresPosibles que minar): se agregan
+# a mano tras confirmar en datos reales + criterio clinico del usuario (Paso 2). El goal
+# correspondiente vive en MANUAL_OARS de convert_constraints.py (mismo rol, no duplicar
+# el valor del constraint en dos lugares).
+MANUAL_ROLES = {
+    # Lobe_Temporal_L/R contorneado con frecuencia en CyC real, ausente de la plantilla.
+    # Dmax<70Gy prioridad 3 sobre el PRV (geometria del serial) — confirmado por el usuario.
+    'Lobe_Temporal_PRV3_L': {'CyC'},
+    'Lobe_Temporal_PRV3_R': {'CyC'},
+    # Pelvis (decision del usuario 2026-10-14, revision de los 49 casos de "campo
+    # extendido" de Paso 2): SpinalCord/SpinalCanal con constraint Dmax<50Gy sobre el
+    # PRV — mismo rol que CyC, se le agrega el sitio (la union con {'CyC'} ya derivado
+    # de la plantilla la hace main() via role_sites[rol] |= sites).
+    'SpinalCord_PRV05': {'Pelvis'},
+    # Kidney: Dmedia<15Gy. 'Kidneys' (bilateral combinado) si existe esa estructura;
+    # si no, Kidney_L/Kidney_R por separado. La mayoria estan lejos del campo
+    # (contorneadas por completitud); los casos con campo extendido real (Y del RP
+    # >30cm) quedan aparte en patient_exceptions.yaml, no se funden en este rol.
+    'Kidneys': {'Pelvis'},
+    'Kidney_L': {'Pelvis'},
+    'Kidney_R': {'Pelvis'},
+}
+
 EXCLUDE_NAMES = {
     # canónico = PRV (serial) -> el órgano llano no se modela
     'Brainstem', 'SpinalCord', 'OpticChiasm', 'OpticNrv_L', 'OpticNrv_R',
     'BrachialPlex_L', 'BrachialPlex_R', 'BrachialPlexus_L', 'BrachialPlexus_R', 'Chiasm',
+    'Lobe_Temporal_L', 'Lobe_Temporal_R', 'TemporalLobe_L', 'TemporalLobe_R',
     # canónico = órgano llano (no serial en este protocolo) -> el PRV extra no se modela
     'Cochlea_PRV03_L', 'Cochlea_PRV03_R', 'Cochlea_L_PRV03', 'Cochlea_R_PRV03', 'Bowel_PRV',
     # margen de PRV NO estandar para este organo (vs. el margen ya canónico de cada uno) — no
@@ -74,10 +159,73 @@ EXCLUDE_NAMES = {
     # PTV_total/PTV_Low_total (combinación de niveles, no un nivel propio).
     # NO aliasar a PTV_High: fundir perdería la geometria de cada subcomponente.
     'PTVp', 'PTVn', 'PTVp_', 'PTVn_', 'PTV_Prostate', 'PTV_SeminalVes',
-    'PTV_Uterus', 'PTV_Uterurs', 'PTV_LN_Pelvics', 'PTV_LN_Inguinofe', 'PTV_LN_Iliac',
+    'PTV_Uterus', 'PTV_Uterurs', 'PTV_LN_Pelvics', 'PTV_LN_Pelvic', 'PTV_LN_Inguinofe',
+    'PTV_LN_Inguin', 'PTV_LN_Iliac',
     'PTV_Pelvics', 'PTV_Pelvis', 'PTV_total', 'PTV_Low_total',
     # resta OAR+PTV concatenada sin separador (mismo patron que '-PTV'/'!PTV', sin signo)
     'RectumPTV', 'BladderPTV',
+    # Pelvis (decision del usuario 2026-10-14): Liver/Heart/Lung_* "desestimar la
+    # estructura" (paciente se mantiene) — a diferencia de Kidney, sin chequeo de tamaño
+    # de campo (son casos incidentales, no indicio fuerte de campo extendido real por si
+    # solos). OJO: Ovary_* es una decision DISTINTA ("excluirlos" = sacar el PACIENTE, no
+    # solo la estructura) — por eso NO va aca; queda sin alias/exclude (unknown) para que
+    # el pipeline falle salvo por la excepcion explicita en patient_exceptions.yaml (ver
+    # motivo ovario_detectado). Iban mezclados por error en una ronda anterior (corregido
+    # 2026-10-14 tras aviso del usuario).
+    'Liver', 'Heart', 'Lung_L', 'Lung_R', 'Lungs',
+    # CyC (decision del usuario 2026-10-14): estructuras reales, se desestiman pero el
+    # PACIENTE se mantiene (no necesitan out_of_convention).
+    'Traqueostomia', 'Traqueostoma', 'Pretraqueal', 'Retina_L', 'Retina_R',
+    'Cornea_L', 'Cornea_R', 'Eye_R_PRV2mm', 'Parotida_L-0.2', 'Parotida_R-0.2',
+    'CuelloDer', 'CuelloIzq', 'Nivel6', 'SCVIZQ',
+    # mismo criterio que Cochlea_PRV03_*: el canonico es el organo llano, el PRV sobra
+    # (convenio de prefijo de los 2 pacientes con nomenclatura propia).
+    'PRV_CochleaL03', 'PRV_CochleaR03', 'CochleaLPRV', 'CochleaRPRV',
+    # CyC (decision del usuario 2026-10-14): estructuras reales que SI ameritan sacar al
+    # paciente (no solo desestimar la estructura) — ver patient_exceptions.yaml para la
+    # lista de patient_id. Se agregan aca tambien para que la estructura en si quede
+    # categorizada (documentacion), no solo tolerada por la excepcion del paciente.
+    'Trachea', 'EyeBack_L', 'EyeFront_L',
+    # Pelvis (decision del usuario 2026-10-14, segunda ronda CyC — la estructura resulto
+    # ser de Pelvis, no CyC, al verificar en datos reales): resta entre niveles de PTV, no
+    # sobre PTV generico. Paciente ya esta out_of_convention por otro motivo (campo
+    # extendido) de todas formas. ('RectumPTV' ya estaba arriba, misma regla.)
+    'PTV_Low!High',
+    # CyC: PTV_Mid01/PTV_Mid02 con volumen=0 (recontoreo vacio/abandonado) -> desestimar la
+    # estructura, el paciente se mantiene (normalmente ya cae en out_of_convention de todas
+    # formas por protocolo_distinto_sin_PTV_Mid, ver patient_exceptions.yaml). Con volumen>0
+    # el paciente se saca entero (mas niveles de PTV que el protocolo) — eso NO se resuelve
+    # aca (es decision por paciente, no por nombre), ver motivo mas_niveles_ptv_que_protocolo
+    # en patient_exceptions.yaml. El check de sufijo de crop ya cubre PTV_Mid01-04/!04/etc.
+    'PTV_Mid01', 'PTV_Mid02',
+    # Prostata (decision del usuario 2026-10-14): subdivisiones de PTV_High por nivel de
+    # dosis o variantes puntuales de un solo paciente, no un nivel propio del protocolo.
+    'PTV_High100%', 'PTV_High95%', 'PTV_High69', 'PTV_High70', 'PTV_High_mod',
+    # Prostata: convencion propia de un paciente puntual (resta Rectum-PTV en castellano,
+    # sin separador reconocible) y duplicado de Bladder que ambiguaria con 'Bladder' llano.
+    'RectoenPTV', 'PRVRECTOENPTV', 'PTVSINRECTO', 'Bladder1',
+    # Resolucion de los 20 pendientes de revision humana (decision del usuario,
+    # 2026-10-15, ver paso2_pendientes_20_pacientes_resuelto.csv): "desestimar
+    # estructura" en todos estos casos, el paciente se mantiene.
+    'Hippocampus_L', 'Hippocampus_R',                   # CyC
+    'Lobe_Tem_PRV3_Lb', 'Lobe_Tem_PRV3_Rb',              # CyC: variante "b" sin usar, ya
+                                                          # resuelve via Lobe_Tem_PRV3_L/R
+    'SpinalCord_Aux',                                    # CyC: ya resuelve via SpinalCord_PRV05
+    'Elbow',                                             # CyC
+    'amigdala', 'supra',                                 # CyC (castellano, fragmentos)
+    'PTV_Boost',                                         # CyC (cubre tambien PTV_boost-04 via crop-suffix)
+    # Ambiguedades reales de recontoreo resueltas por el usuario: queda SOLO el nombre
+    # que el usuario desestimo, el que retuvo sigue resolviendo por su via normal
+    # (canonico o alias ya existente).
+    'Cochlea_L1',                                        # retener Cochlea_L
+    'Musc_Constrict1',                                   # retener Musc_Constrict
+    'OpticChiasmPRV03',                                  # retener OpticChiasm_PRV3 (ver MANUAL_OAR_ALIASES)
+    'Sigma',                                              # Pelvis
+    'Duodenum', 'Stomach', 'Vulva',                      # Pelvis + Prostata (Stomach)
+    'PTV_Uterus1',                                       # Pelvis: mismo criterio que PTV_Uterus
+    'PTV_LN', 'PTV_Lesion',                              # Pelvis: PTV_High ya es el PTV real
+    'SacralPlexus',                                      # Pelvis
+    'Bones',                                             # Pelvis
 }
 
 def classify(nombre):
@@ -140,6 +288,9 @@ def main():
         aliases.setdefault(v, rol)
     for v, rol in MANUAL_OAR_ALIASES.items():
         aliases.setdefault(v, rol)
+    for rol, sites in MANUAL_ROLES.items():
+        role_sites[rol] |= sites
+        role_cat.setdefault(rol, 'oar')
 
     emit(a.out, role_sites, role_cat, aliases, excluded, dirty)
 
@@ -162,6 +313,8 @@ def emit(out, role_sites, role_cat, aliases, excluded, dirty):
     for r in oars:
         sites = ','.join(sorted(role_sites[r]))
         note = "   # PRV: geometría del serial" if 'PRV' in r.upper() else ""
+        if r in MANUAL_ROLES:
+            note += " MANUAL (ver MANUAL_ROLES, convert_constraints.py:MANUAL_OARS)"
         L.append(f"    - {r}    # [{sites}]{note}")
     L.append("")
 
@@ -219,6 +372,8 @@ def emit(out, role_sites, role_cat, aliases, excluded, dirty):
           '                        # calculo, ningun rol canonico contiene "cal"',
           '  - "none"              # artefacto de export (nombre literal "None")',
           '  - "ctrl*"             # forma corta de "control" (ver *control*)',
+          '  - "*contraste*"       # agente de contraste marcado como ROI (Pelvis), mismo',
+          '                        # tratamiento que Cal/Caliente (decision del usuario 2026-10-14)',
           ""]
 
     L += ["# ---- 5. QA GATE (dosis ABSOLUTA cruda Gy; D95 vs Rx_nivel; banda única) ----",
@@ -244,7 +399,8 @@ def emit(out, role_sites, role_cat, aliases, excluded, dirty):
           "  out_of_convention: null      # null | motivo -> conjunto reservado (generalización)",
           "  qa_flags: []",
           "  aliases_applied: []",
-          "  harmonization_hash: str      # hash de los YAML de armonización usados en este NPZ", ""]
+          "  harmonization_hash: str      # hash de los YAML de armonización usados en este NPZ",
+          "  warnings: []                 # ej. estructuras desconocidas ignoradas (solo en pacientes con excepción registrada)", ""]
 
     # apéndice informativo (comentado): exclusiones y suciedad detectada
     L += ["# ---- APÉNDICE (informativo) ----",

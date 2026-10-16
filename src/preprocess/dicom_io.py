@@ -58,6 +58,31 @@ def load_dose(patient_dir, by_mod=None):
     return dose_gy, grid, frame_uid
 
 
+def max_y_field_size_mm(patient_dir, by_mod=None):
+    """Tamano maximo del campo en Y (cabeza-pies) sobre todos los beams/control points
+    del RTPLAN, mirando el jaw Y (tipo 'Y' o 'ASYMY'). Proxy para distinguir campo
+    pelviano estandar de campo extendido/para-aortico (ver patient_exceptions.yaml,
+    decision del usuario sobre los casos de Kidney en Pelvis, Paso 2)."""
+    by_mod = by_mod or find_by_modality(patient_dir)
+    rp = by_mod.get('RTPLAN')
+    if not rp:
+        raise DicomLoadError('no hay RTPLAN (Modality=RTPLAN)')
+    ds = pydicom.dcmread(rp[0])
+    if ds.Modality != 'RTPLAN':
+        raise DicomLoadError(f'Modality={ds.Modality}, no RTPLAN')
+
+    max_size = 0.0
+    for beam in getattr(ds, 'BeamSequence', []):
+        for cp in getattr(beam, 'ControlPointSequence', []):
+            for bld in getattr(cp, 'BeamLimitingDevicePositionSequence', []) or []:
+                if bld.RTBeamLimitingDeviceType in ('Y', 'ASYMY'):
+                    y1, y2 = (float(v) for v in bld.LeafJawPositions)
+                    max_size = max(max_size, abs(y2 - y1))
+    if max_size == 0.0:
+        raise DicomLoadError('no se encontro jaw Y/ASYMY en ningun beam del RTPLAN')
+    return max_size
+
+
 def load_structures(patient_dir, by_mod=None):
     """-> (frame_uid, {raw_name: [(z_mm, [(x,y),...]), ...]})
     Un nombre puede tener contornos en varias slices; varios contornos en la misma

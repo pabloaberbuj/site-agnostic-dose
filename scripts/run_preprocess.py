@@ -98,7 +98,7 @@ def main():
                 continue
             try:
                 res = process_patient(os.path.join(folder, pid), pid, site_cfg, resolver,
-                                       exception_entry=exc if exc and exc[0] == 'out_of_convention' else None)
+                                       exception_entry=exc)
             except PipelineError as e:
                 failed.append((pid, str(e)))
                 continue
@@ -108,6 +108,7 @@ def main():
 
             res.metadata['site'] = site
             res.metadata['harmonization_hash'] = hhash
+            res.metadata['warnings'] = res.warnings
             npz_path = os.path.join(site_out, f'{pid}.npz')
             arrays = {'dose_pct': res.dose_pct.astype(np.float32)}
             for role, mask in res.masks.items():
