@@ -13,7 +13,11 @@
   (Reproducción del baseline — portar exp002 U-Net 2D + PSDM, MAE, al framework nuevo
   sobre próstata VMAT).
 - **Datos:** 503/503 pacientes procesados al 100% (CyC 196, Pelvis 161, Prostata 146).
-  NPZ en `npz_v1_paso2/<sitio>/` (fuera de git, carpeta hermana).
+  NPZ en `npz_v1_paso2/<sitio>/` (fuera de git, carpeta hermana). Cohorte elegible
+  (total procesado menos `out_of_convention`, el reservado nunca entra a ningún split):
+  CyC 156/196 (41 removidos: 1 `excluded` sin DICOM + 40 `out_of_convention`), Pelvis
+  138/161 (23 `out_of_convention`), Prostata 139/146 (7 `out_of_convention`). Desglose
+  de motivos por sitio en `paso2_decisiones_autonomas.md` / `patient_exceptions.yaml`.
 
 ## Fase 0 — cerrada, qué queda construido
 
@@ -40,9 +44,9 @@
   - Baseline no-aprendida (DVH promedio por sitio/rol, solo train): en
     `results/baseline/baseline_dvh_<sitio>.json` + `paso5_baseline.md`.
 - **Splits:** `data/splits/split_v1.json` (seed=42, 65/15/20 estratificado por sitio).
-  Train: CyC 101, Pelvis 90, Prostata 90 (total 281). **Pelvis y Prostata quedan bajo
-  el piso operativo de 100/sitio** (CHARTER §2) por el tamaño de su `out_of_convention`
-  (23 y 7 resp.) — limitación conocida a reportar en resultados de Fase 1+.
+  Train: CyC 101, Pelvis 90, Prostata 90 (total 281). El "piso de 100 pacientes/sitio"
+  del CHARTER §2 es sobre la **cohorte total** (train+val+test), no sobre train solo —
+  las 3 cohortes elegibles (156/138/139) están por encima; no es una limitación.
 
 ## Pendiente / abierto (no bloquea el cierre de Fase 0)
 

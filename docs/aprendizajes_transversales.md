@@ -67,3 +67,17 @@
   en estructuras con huecos (ej. PTV evitando SpinalCord en algunos cortes) — Paso 1 ya
   decía "no es el volumen validado" pero nadie había medido cuánto difería hasta Paso 4.
   [`paso4_escala_voxel_npz.md`]
+
+- **Cobertura de PTV por debajo de banda ≠ contaminación; es, a menudo,
+  subdosificación legítima por OAR.** Dos clusters confirmados en Eclipse en Fase 0:
+  cavum en CyC (PTV solapado con PRV de quiasma/ópticos) y un grupo en próstata hipo
+  entre 92–95% de Rx (subdosado por OAR), que motivó bajar la banda del QA gate de
+  próstata a [92%,105%]. El gate está haciendo su trabajo al marcarlos; la revisión
+  manual decide. No bajar un piso de banda sin revisar los casos uno a uno en Eclipse.
+  [`paso3_qa_gate.md`, CHARTER §5]
+
+- **El "piso de 100 pacientes/sitio" es sobre la cohorte total, no sobre el train.**
+  El 100 es el N total típico de la bibliografía KBP (train+val+test), fijado a ojo, no
+  un mínimo de entrenamiento calculado. Un train de ~90 con cohorte de ~140 NO está
+  bajo el piso. Evitar reportar como limitación del estudio algo que no lo es.
+  [CHARTER §2]
