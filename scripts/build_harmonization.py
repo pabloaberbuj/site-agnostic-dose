@@ -376,12 +376,17 @@ def emit(out, role_sites, role_cat, aliases, excluded, dirty):
           '                        # tratamiento que Cal/Caliente (decision del usuario 2026-10-14)',
           ""]
 
-    L += ["# ---- 5. QA GATE (dosis ABSOLUTA cruda Gy; D95 vs Rx_nivel; banda única) ----",
+    L += ["# ---- 5. QA GATE (dosis ABSOLUTA cruda Gy; D95 vs Rx_nivel; banda por sitio) ----",
           "qa_gate:",
           "  metric: D95",
           "  dose_space: absolute_gy",
           "  bands:",
           "    default: {floor_pct: 95, ceil_pct: 105}   # provisional; recalibrar si muchos falsos flags",
+          "    Prostata: {floor_pct: 92, ceil_pct: 105}  # Paso 3 (2026-10-16): 8/146 PTV_High",
+          "                                              # caian sistematicamente en 92.9-94.6%",
+          "                                              # (franja angosta, no dispersion al azar)",
+          "                                              # -> piso real del sitio es ~92%, no 95%",
+          "                                              # (decision del usuario sobre paso3_qa_gate.csv)",
           "  on_fail: flag_for_manual_review", ""]
 
     L += ["# ---- METADATA POR PACIENTE (esquema) ----",

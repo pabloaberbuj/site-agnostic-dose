@@ -132,6 +132,20 @@ out_of_convention:
   PT_95abfd12e84c4f1d: {site: Pelvis, motivo: prv_rectum_convencion_propia}
   PT_a067e0c9e98eb65c: {site: Pelvis, motivo: ptv_rectum_convencion_propia}
   PT_e3cd1ac3cecd73e3: {site: Pelvis, motivo: eventracion}
+  # CyC (decision del usuario 2026-10-16, Paso 3 QA gate sobre paso3_qa_gate.csv):
+  # D95(PTV_Mid) fuera de banda -> descartar paciente.
+  PT_259b5a8f69cba9bc: {site: CyC, motivo: qa_d95_ptv_mid_89pct_fuera_de_banda}
+  # PT_5e3a5d473a92cedb ya tenia 'amigdala'/'supra' desestimados en Paso 2 (estructura,
+  # paciente se mantenia); ahora el QA gate suma motivo propio (D95 PTV_Mid 110%, hot
+  # spot) que si amerita sacar el paciente.
+  PT_5e3a5d473a92cedb: {site: CyC, motivo: qa_d95_ptv_mid_110pct_fuera_de_banda}
+  PT_8a9d69ea4ef84f91: {site: CyC, motivo: qa_d95_ptv_low_95pct_fuera_de_banda}
+  # Prostata (decision del usuario 2026-10-16): de los 17 pacientes con PTV_Low no
+  # declarado en el protocolo (ver paso3_qa_gate.md), 16 son identicos a PTV_High
+  # (D95 68-70Gy, dentro de banda) y quedan 'ok' (ver reviewed_ok abajo); este es el
+  # unico con un nivel genuinamente distinto (D95=50.7Gy, ~72% de Rx_High) — mismo
+  # paciente que tiene CTV_ProstateBed en Paso 2, probable lecho prostatico post-qx.
+  PT_fe24a2bdb79bd38a: {site: Prostata, motivo: qa_ptv_low_nivel_distinto_posible_lecho_prostatico}
 reviewed_ok:
   # CyC: cavum, PTV solapado con PRV de quiasma/nervios ópticos (prioridad mayor al PTV);
   # D95 de PTV por debajo de banda justificado clínicamente.
@@ -175,3 +189,31 @@ reviewed_ok:
   - {id: PT_348d801fd34b2a81, site: CyC, motivo: TargetVolumeID_zRingPTV_High_mal_asignado_cota_inferior_versiones}
   # (PT_514bde984025ac6d se movio a out_of_convention: tambien tiene PTV_Mid01 con volumen
   # real, decision del usuario 2026-10-14 sobre mas_niveles_ptv_que_protocolo_mid01_02.)
+  # CyC (decision del usuario 2026-10-16, Paso 3 QA gate): D95 fuera de banda, revisado,
+  # se mantiene en train.
+  - {id: PT_69d8fe738b0ce247, site: CyC, motivo: qa_d95_ptv_mid_95pct_revisado_ok}
+  - {id: PT_7911e792733fc5bc, site: CyC, motivo: qa_d95_ptv_high_94pct_revisado_ok}
+  - {id: PT_d3337c99c1088b80, site: CyC, motivo: qa_d95_ptv_low_95pct_revisado_ok}
+  - {id: PT_e5061f032d464e41, site: CyC, motivo: qa_d95_ptv_high_93pct_revisado_ok}
+  - {id: PT_ec857fa843d0ada9, site: CyC, motivo: qa_d95_ptv_mid_95pct_revisado_ok}
+  - {id: PT_fe2c6c68f6985220, site: CyC, motivo: qa_d95_ptv_mid_94pct_revisado_ok}
+  # Prostata (decision del usuario 2026-10-16): PTV_Low no declarado en el protocolo,
+  # confirmado identico a PTV_High (D95 68-70Gy) — no es un nivel de dosis real, mascara
+  # extra inerte en el NPZ (el protocolo de Prostata solo usa PTV_High). Ver
+  # paso3_qa_gate.md para el detalle de D95 de cada uno.
+  - {id: PT_032778e328116f8e, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_314f4cd0475d951a, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_4d1d8ae25f141911, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_5053a79465ed28bf, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_5203c2393a5acbe4, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_5c16a5f5a1daef87, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_9274cf0df20e243f, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_9bcc5b86f007c061, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_9dee54db9064f2e0, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_9f9c5bfb81448b46, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_b4dcfb359d7bbecd, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_b668d546aa0e5c4c, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_b8a6ef5e97d8f35c, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_d9c353884a9cd12f, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_e798d3c7cf5c3bc7, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
+  - {id: PT_f65d82147e52cdbb, site: Prostata, motivo: qa_ptv_low_identico_a_ptv_high}
