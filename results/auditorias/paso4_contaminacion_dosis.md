@@ -47,7 +47,11 @@ Verificado independientemente: su campo de tratamiento (RTPLAN, jaw Y) mide **30
 13 ya marcados `out_of_convention`, solo que el criterio de Paso 2 no lo alcanzaba por
 estar scopeado a "pacientes con Kidney".
 
-**Pendiente de decisión del usuario:** ¿se marca `PT_0ee66af2dd4c0880` como
-`out_of_convention` (motivo `campo_extendido_Y_mayor_300mm`, igual que los otros 13)?
-Es un caso límite (308mm vs 321-450mm de los demás), no tan extremo, pero consistente
-en ambas señales.
+**Resuelto por el usuario (2026-10-16):** revisado en Eclipse, el plan está OK — NO se
+marca `out_of_convention`. El caso límite (308mm de campo, 306mm de extensión de
+dosis) no corresponde a un campo extendido real pese a estar justo por encima del
+umbral de 300mm; queda como evidencia de que el umbral es un indicador, no una regla
+mecánica, y que casos borderline ameritan revisión directa en Eclipse en vez de
+aplicar el corte ciegamente.
+
+## Paso 4a: cerrado

@@ -49,5 +49,10 @@ no con un subgrupo claramente atípico.
   los de cola larga: CyC `NNoAprobados` ∈ {9, 11} (2 pacientes), Prostata {7} (2
   pacientes) — pero no se marcan `out_of_convention` solo por esto.
 
-Queda a decisión del usuario confirmar esta recomendación o pedir el detalle de los
-pacientes de cola larga para revisión puntual en Eclipse.
+**Confirmado por el usuario (2026-10-16): no se excluye ningún paciente por
+`NNoAprobados` en esta etapa.** Un eventual criterio tipo Pareto es de una etapa
+posterior y probablemente requiera otros tests y otra selección de pacientes — Paso 4
+es solo para contabilizar y dejar el número como insumo hacia adelante, no para decidir
+exclusiones ahora.
+
+## Paso 4c: cerrado
