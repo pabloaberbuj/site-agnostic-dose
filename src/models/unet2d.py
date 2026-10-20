@@ -102,3 +102,20 @@ class UNet2D(nn.Module):
             skip = skips[-2 - i]
             x = up(x, skip)
         return self.outc(x)
+
+
+def build_model(cfg) -> nn.Module:
+    """Factory que construye el modelo según la config (igual a la del repo viejo)."""
+    arch = cfg.model.arch
+    if arch == "unet2d":
+        return UNet2D(
+            in_channels=cfg.model.in_channels,
+            out_channels=cfg.model.out_channels,
+            base_features=cfg.model.base_features,
+            depth=cfg.model.depth,
+            dropout=cfg.model.dropout,
+        )
+    if arch == "unet3d":
+        from src.models.unet3d import build_model_3d
+        return build_model_3d(cfg)
+    raise NotImplementedError(f"Arch {arch} no implementada todavía")

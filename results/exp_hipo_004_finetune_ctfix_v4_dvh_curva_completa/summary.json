@@ -1,0 +1,100 @@
+{
+  "exp": "exp_hipo_004_finetune_ctfix_v4",
+  "checkpoint": "C:\\Pablo\\ProstateDoseProject\\repo\\checkpoints\\exp_hipo_004_finetune_ctfix_v4\\epoch=014.ckpt",
+  "n_test": 40,
+  "nota": "vara NUEVA (no reproduce un numero previo) \u2014 referencia para Fase 2",
+  "renormalizacion": "pred clip a 0 y renormalizada a D95(PTV_pred)=100% antes del DVH",
+  "bandas_dosis_pct_rx": {
+    "baja": [
+      0,
+      40
+    ],
+    "media": [
+      40,
+      80
+    ],
+    "alta": [
+      80,
+      110
+    ]
+  },
+  "sanity_checks_fallidos": [],
+  "mean_abs_delta_V_por_estructura": {
+    "PTV": {
+      "global": {
+        "mean": 1.3028562228005558,
+        "std": 1.4164455194465444
+      },
+      "baja_0_40": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "media_40_80": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "alta_80_110": {
+        "mean": 4.820568024362056,
+        "std": 5.240848421952215
+      },
+      "banda_dominante": "alta_80_110"
+    },
+    "Rectum": {
+      "global": {
+        "mean": 4.72645838520382,
+        "std": 3.5052954703134893
+      },
+      "baja_0_40": {
+        "mean": 4.195272683644278,
+        "std": 4.669623930601229
+      },
+      "media_40_80": {
+        "mean": 7.298706713781304,
+        "std": 5.278286434066361
+      },
+      "alta_80_110": {
+        "mean": 2.0227477392318813,
+        "std": 1.4543736691024949
+      },
+      "banda_dominante": "media_40_80"
+    },
+    "Bladder": {
+      "global": {
+        "mean": 2.7933104191748916,
+        "std": 3.2053547239313906
+      },
+      "baja_0_40": {
+        "mean": 3.227567125634212,
+        "std": 3.958492760445088
+      },
+      "media_40_80": {
+        "mean": 3.3445459799218376,
+        "std": 4.735687166993889
+      },
+      "alta_80_110": {
+        "mean": 1.4648455060178933,
+        "std": 1.99577137286144
+      },
+      "banda_dominante": "media_40_80"
+    },
+    "BODY": {
+      "global": {
+        "mean": 0.9355078826685496,
+        "std": 2.1895932055381935
+      },
+      "baja_0_40": {
+        "mean": 1.8619438028365032,
+        "std": 4.175073486499568
+      },
+      "media_40_80": {
+        "mean": 0.5682171925426431,
+        "std": 1.779981277547591
+      },
+      "alta_80_110": {
+        "mean": 0.159099711940222,
+        "std": 0.17845961262890528
+      },
+      "banda_dominante": "baja_0_40"
+    }
+  }
+}

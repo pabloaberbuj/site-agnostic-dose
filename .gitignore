@@ -74,3 +74,4 @@ env/
 .pytest_cache/
 .coverage
 htmlcov/
+lightning_logs/
