@@ -113,6 +113,7 @@ def main():
             arrays = {'dose_pct': res.dose_pct.astype(np.float32)}
             for role, mask in res.masks.items():
                 arrays[f'mask_{role}'] = mask
+            arrays['mask_BODY'] = res.body_mask
             np.savez_compressed(npz_path, **arrays)
             with open(os.path.join(site_out, f'{pid}.json'), 'w', encoding='utf-8') as f:
                 json.dump(res.metadata, f, ensure_ascii=False, indent=2)

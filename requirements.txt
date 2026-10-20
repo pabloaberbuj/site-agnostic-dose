@@ -1,0 +1,33 @@
+# Entorno self-standing del repo site-agnostic-dose (Fase 2, HO#1).
+# Decisión (2026-10-20): se MATCHEAN las versiones con las que corrió Fase 1 (venv del proyecto
+# viejo, Python 3.13.2) para no introducir una variable de entorno entre la reproducción validada
+# de Fase 1 y los experimentos de Fase 2. Subir versiones = decisión explícita, aparte.
+#
+# Crear:   C:\Users\MEVATERAPIA_USR\miniconda3\python.exe -m venv .venv
+#          .venv\Scripts\python -m pip install -r requirements.txt
+# Python:  3.13.2
+
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+# núcleo
+torch==2.12.1+cu130
+pytorch-lightning==2.6.5
+torchmetrics==1.9.0
+numpy==2.4.4
+scipy==1.17.1
+pandas==3.0.3
+PyYAML==6.0.3
+omegaconf==2.3.1
+tqdm==4.68.3
+
+# preprocesado DICOM / métricas
+pydicom==3.0.2
+scikit-image==0.26.0
+opencv-python==5.0.0.93
+
+# reportes / logging
+matplotlib==3.11.0
+wandb==0.27.2
+
+# tests
+pytest==9.1.1

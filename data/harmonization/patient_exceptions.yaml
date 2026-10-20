@@ -146,6 +146,11 @@ out_of_convention:
   # unico con un nivel genuinamente distinto (D95=50.7Gy, ~72% de Rx_High) — mismo
   # paciente que tiene CTV_ProstateBed en Paso 2, probable lecho prostatico post-qx.
   PT_fe24a2bdb79bd38a: {site: Prostata, motivo: qa_ptv_low_nivel_distinto_posible_lecho_prostatico}
+  # Prostata (decision del usuario 2026-10-20, Fase 2 HO#1): PT_5787d1d3258de95d tenia PTV_Low no
+  # declarado en el protocolo y NO identico a PTV_High (IoU 0.865, Low 406cc vs High 354cc, D95 57.1 vs
+  # 67.0 Gy); quedo sin resolver en Paso 3. Antes estaba en reviewed_ok por
+  # TargetVolumeID_PTV_Prostate_mas_chico_cota_inferior_versiones. Pasa a reservado.
+  PT_5787d1d3258de95d: {site: Prostata, motivo: qa_ptv_low_no_declarado_distinto_de_ptv_high}
 reviewed_ok:
   # CyC: cavum, PTV solapado con PRV de quiasma/nervios ópticos (prioridad mayor al PTV);
   # D95 de PTV por debajo de banda justificado clínicamente.
@@ -172,7 +177,6 @@ reviewed_ok:
   # Próstata: TargetVolumeID mal asignado en el plan ('PTV_Prostate', estructura más chica que
   # PTV_High). Resuelve a PTV_High. NO aliasar PTV_Prostate. Conteo de versiones = cota inferior.
   - {id: PT_2801fef819714530, site: Prostata, motivo: TargetVolumeID_PTV_Prostate_mas_chico_cota_inferior_versiones}
-  - {id: PT_5787d1d3258de95d, site: Prostata, motivo: TargetVolumeID_PTV_Prostate_mas_chico_cota_inferior_versiones}
   # (PT_c1ba3262f2e7e342 se movio a out_of_convention: tiene BowelLargePRV01, margen de
   # SBRT, decision del usuario 2026-10-14 — pesa mas que el plan sum lejano.)
   # Próstata: D95 92.1% revisado en Eclipse, ok.

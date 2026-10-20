@@ -54,6 +54,7 @@ class PatientResult:
     body_bbox_voxels: dict         # {i_min,i_max,j_min,j_max,k_min,k_max} (k=Z,i=Y,j=X... ver nota)
     metadata: dict
     warnings: list = field(default_factory=list)
+    body_mask: np.ndarray = None   # bool (nz,ny,nx); NPZ v2+ lo guarda como mask_BODY (Ch2 de A0)
 
 
 def _find_body_raw_name(raw_structures):
@@ -185,4 +186,5 @@ def process_patient(patient_dir, patient_id, site_cfg, resolver, exception_entry
         'qa_flags': [],
         'aliases_applied': aliases_applied,
     }
-    return PatientResult(dose_pct=dose_pct, masks=masks, body_bbox_voxels=bbox, metadata=metadata, warnings=warnings)
+    return PatientResult(dose_pct=dose_pct, masks=masks, body_bbox_voxels=bbox, metadata=metadata, warnings=warnings,
+                         body_mask=body_mask)
