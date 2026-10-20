@@ -81,3 +81,39 @@
   un mínimo de entrenamiento calculado. Un train de ~90 con cohorte de ~140 NO está
   bajo el piso. Evitar reportar como limitación del estudio algo que no lo es.
   [CHARTER §2]
+
+### Fase 1 (cerrada 2026-10-20)
+
+- **Reproducir como control de refactor se parte en dos niveles que localizan la capa
+  que falla: inferencia (datos + forward + métrica) y fine-tuning (loop).** Juntos, un
+  número que no da no dice qué capa falló; separados, sí. N1 reprodujo a 3e-4; N2
+  reprodujo la trayectoria (`val/mae` 1.8758 ép.14 vs. 1.876 ép.14; early-stop 76 vs.
+  77; LR coseno T=207 a 6e-16). [`fase1_cerrada.md`]
+
+- **`strict=True` sin keys faltantes ni sobrantes es el control más fuerte por unidad
+  de esfuerzo.** Un checkpoint entrenado no se reproduce de casualidad: si un canal
+  estuviera cruzado o la normalización corrida, el MAE se iría lejos de 2.55 en vez de
+  quedar a 3e-4. Cargar un ckpt viejo en el modelo nuevo exige preservar la estructura/
+  nombres del `nn.Module` (o un remapeo); acá el modelo nuevo era calco del viejo.
+  [`fase1_cerrada.md`, `PROMPT_code_fase1_nivel1.md` §5]
+
+- **Dead config: replicar el comportamiento REAL, no "arreglarlo por prolijidad".** Dos
+  casos en la misma corrida de referencia: `model.context_slices: 3` (lo lee
+  `cfg.data.context_slices`, ausente → cae a 1, modelo de corte único 5 canales) y
+  `scheduler.warmup_epochs: 5` (desconectado en `configure_optimizers()`). "Conectar"
+  cualquiera cambia el grafo o el schedule de LR y rompe la reproducción. [`config
+  exp_hipo_004`, `PROMPT_code_fase1_nivel2.md` §5]
+
+- **Un entrenamiento `deterministic=False` igual puede reproducir casi bit-exacto** en
+  la misma GPU con batch=1, workers seedeados e init fijo: la no-determinación de cuDNN
+  es chica frente a la señal. El criterio "del mismo orden" fue conservador. No es
+  excusa para forzar `use_deterministic_algorithms` (cambiaría la trayectoria vs. el
+  original). [`fase1_cerrada.md`]
+
+- **Separar observabilidad del loop:** un callback de logging con `import wandb` a nivel
+  módulo y que logea `wandb.Image` crashea bajo CSVLogger. Dropearlo bajo `--no-wandb` no
+  toca la trayectoria — no confundir un crash de logging con un bug de entrenamiento.
+  [`src/callbacks/logging_callbacks.py`, `PROMPT_code_fase1_nivel2.md` §5.6]
+
+- **Operacional:** no lanzar corridas GPU en background con `&` — un doble lanzamiento
+  contendió por GPU y por el directorio de checkpoints. [Tier 2, notas vivas Fase 1]

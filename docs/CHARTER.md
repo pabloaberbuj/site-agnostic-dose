@@ -113,8 +113,13 @@ entrada (modularlo por distancia queda como ablación, ver §4).
   - 0.2 Auditorías: **contaminación sobre la dosis** (lección nodal), escala de vóxel, y
     **conteo de versiones de plan por paciente en ARIA** (decide viabilidad del Pareto futuro).
     Baseline no-aprendida (DVH promedio por sitio/rol de estructura) montada en paralelo.
-- **Fase 1 — Reproducción del baseline.** Portar exp002 (U-Net 2D + PSDM, MAE) al framework
-  nuevo sobre próstata VMAT y confirmar que reproduce los números. Des-riesga el refactor.
+- **Fase 1 — Reproducción del baseline.** Portar al framework nuevo el pipeline de regresión de
+  dosis de próstata (U-Net 2D + PSDM, MAE; arquitectura/linaje exp002) y confirmar que reproduce
+  los números. La corrida de referencia concreta es su fine-tune hipo
+  `exp_hipo_004_finetune_ctfix_v4` (checkpoint `epoch=014`), reproducido sobre la cohorte y
+  normalización del **proyecto viejo** (`processed_hipo_ctfix`, D95(PTV)=100%) — NO sobre los datos
+  de Fase 0 (eso es Fase 2): primero por inferencia (cargar el checkpoint), después el loop de
+  entrenamiento. Des-riesga el refactor.
 - **Fase 2 — Primer site-agnostic (A-eje: input). SOLO VMAT.** Próstata + Pelvis + CyC.
   Ablaciones de input incrementales, MAE puro, U-Net fija, métrica por sitio:
   - A0: PTV con Rx + OARs como geometría consolidada (sin valores de goal) + body. Piso sin
