@@ -1,0 +1,90 @@
+{
+  "exp_id": "exp_a4_001_unet2d_psdm",
+  "harmonization_hash": "7ab16f73fa632a3e",
+  "npz_dir": "C:\\Pablo\\Site Agnostic\\repo\\site-agnostic-dose\\..\\..\\data\\npz_v2b_body",
+  "splits_file": "C:\\Pablo\\Site Agnostic\\repo\\site-agnostic-dose\\data\\splits\\split_v2.json",
+  "pad_hw": 256,
+  "fill_sin_goal": 0,
+  "goal_mode": "uniform",
+  "ptv_ref": "union",
+  "n_channels": 7,
+  "conditional_diferidos_a_A3": [
+    "CyC/Eye_L: Dmax",
+    "CyC/Eye_L: Dmean",
+    "CyC/Eye_R: Dmax",
+    "CyC/Eye_R: Dmean",
+    "CyC/Glnd_Thyroid: V50.0Gy",
+    "CyC/Glnd_Thyroid: V60.0Gy",
+    "CyC/Parotid_L: Dmean",
+    "CyC/Parotid_L: V30.0Gy",
+    "CyC/Parotid_R: Dmean",
+    "CyC/Parotid_R: V30.0Gy"
+  ],
+  "psdm_role": "PTV_High",
+  "psdm_norm_cm": 15.0,
+  "psdm_pad": 1.0,
+  "epoch_scale": {
+    "n_train_ref": 265,
+    "n_train": 280,
+    "ref_max_epochs": 200,
+    "ref_patience": 30,
+    "factor": 0.946429
+  },
+  "cfg": {
+    "experiment": {
+      "name": "exp_a4_001_unet2d_psdm",
+      "description": "A4: A1-uniform fill0 + PSDM del PTV_High (7 canales); todo lo dem\u00e1s congelado",
+      "seed": 42
+    },
+    "data": {
+      "npz_dir": "../../data/npz_v2b_body",
+      "splits_file": "data/splits/split_v2.json",
+      "harmonization_dir": "data/harmonization",
+      "pad_hw": 256,
+      "datamodule": "a4",
+      "goal_mode": "uniform",
+      "fill_sin_goal": 0,
+      "ptv_ref": "union",
+      "batch_size": 1,
+      "num_workers": 2,
+      "pin_memory": true
+    },
+    "model": {
+      "arch": "unet2d",
+      "in_channels": 7,
+      "out_channels": 1,
+      "base_features": 16,
+      "depth": 4,
+      "upsample_mode": "bilinear",
+      "dropout": 0.0,
+      "slice_chunk": 32
+    },
+    "loss": {
+      "name": "masked_mae_body"
+    },
+    "optimizer": {
+      "name": "adamw",
+      "lr": 0.0001,
+      "weight_decay": 1e-05
+    },
+    "scheduler": {
+      "name": "cosine",
+      "max_epochs": 189
+    },
+    "training": {
+      "max_epochs": 189,
+      "precision": "16-mixed",
+      "gradient_clip_val": 1.0,
+      "early_stopping_patience": 28,
+      "monitor_metric": "val/mae",
+      "monitor_mode": "min"
+    },
+    "epoch_scale": {
+      "n_train_ref": 265,
+      "n_train": 280,
+      "ref_max_epochs": 200,
+      "ref_patience": 30,
+      "factor": 0.946429
+    }
+  }
+}

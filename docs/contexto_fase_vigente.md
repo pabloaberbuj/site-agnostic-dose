@@ -1,9 +1,10 @@
 # Contexto Fase Vigente
 
 > **Tier 2 — Documento vivo.** Se reescribe completamente al fin de cada fase.
-> Refleja siempre "qué es verdad ahora", no la traza histórica.
+> Refleja siempre "qué es verdad ahora", no la traza histórica. El *por qué cambió* (p.ej. por qué
+> v2b reemplazó a v1/v2) va al append-only de Tier 3, no acá.
 >
-> Última actualización: 2026-10-20 (Fase 2, HO#1 cerrado)
+> Última actualización: 2026-10-24 (Fase 2: A1 cerrado, A2/A3 diferidos, A4 en curso — ver sección A-eje)
 
 ---
 
@@ -11,9 +12,9 @@
 
 - **Fase activa:** 2 — primer site-agnostic (A-eje de input, SOLO VMAT). Plan A0–A6 en CHARTER §4
   y `ARRANQUE_fase2.md`.
-- **Subestado:** HO#1 (infra + datamodule A0 + smoke test) **cerrado**. No se entrenó nada todavía.
-  Siguiente: loop de train de A0 (config + U-Net 2D fija, MAE, métrica por sitio con IC bootstrap)
-  y baseline no-aprendida en paralelo.
+- **Subestado:** HO#1 (infra + datamodule A0 + smoke test) **cerrado**, 0 fallas. No se entrenó nada
+  todavía. HO#2 (loop de train de A0) y HO#2b (baseline no-aprendida) **especificados**, corriendo
+  en paralelo. Siguiente lectura real de la fase: A0 vs baseline por sitio.
 
 ## Datos vigentes de Fase 2
 
@@ -56,13 +57,106 @@ viejo. Instalar con `pip --no-cache-dir` (el sandbox bloquea el cache de pip). G
 Estado: **0 fallas en los 432 del split** (`--all`); D95(PTV_High)=100.0% (tol ±2%), ratios de Ch0 =
 tabla (CyC Mid 0.8491 / Low 0.7783), hash de sidecars = hash de la tabla.
 
+## Evaluación (decidido — HO#2/HO#2b)
+
+- **Métrica principal:** `dvh_curva_completa` = `mean|ΔV(D)|` por banda de dosis, por estructura,
+  eje de dosis en **% de Rx_High**. **Banda media 40–80% la crítica para OARs**; banda alta para PTV
+  (ahí concentra su error). DVH sobre **volumen nativo** (higiene de vóxel), no grilla downsampleada.
+- **Reporte por sitio siempre**, con **IC95 bootstrap** resampleando pacientes dentro del sitio. El
+  MAE global es secundario (promedia y esconde).
+- **Módulo compartido `src/eval/`:** el mismo harness scorea red y baseline. El primero de HO#2/HO#2b
+  que corra lo monta; el otro lo importa.
+- **Secundarias de monitoreo (solo red):** MAE body, dose_score OpenKBP, SSIM/MS-SSIM. Se reportan,
+  no son el norte.
+- **Convención de lectura del sweep A0→A6:** decisiones sobre **val**; **test reservado** para el
+  cierre del eje A (no filtrar test a través de las ablaciones incrementales).
+- **Comparación que manda:** A0 vs baseline no-aprendida sobre v2b. La vara de Fase 1
+  (`dvh_curva_completa`, banda media: Rectum 7.30, Bladder 3.34; PTV banda alta 4.82) es referencia
+  de **orden de magnitud y forma, no umbral** (cambian cohorte y normalización).
+
+## Baseline no-aprendida (control permanente — HO#2b)
+
+DVH promedio poblacional por `(sitio, rol de estructura)`, construida **solo del split train**
+(val/test sería leakage). La predicción para una estructura = la curva de su `(sitio, rol)`. Se
+scorea **solo en espacio DVH** (no tiene dosis 3D → sin MAE body ni SSIM). Responde la pregunta de
+§2: ¿la red aprende algo más que la forma típica del protocolo? Reemplaza al control de ML clásico
+(descartado: no generaliza al target de DVH completa con N variable de OARs).
+
+## HO#2 — referencia de entrenamiento verificada (2026-10-20, aún sin correr)
+
+Fuente: `C:/Pablo/ProstateDoseProject/repo/configs/exp002_unet2d_psdm_ctfix_fov34.yaml` (run desde cero,
+el único con horizonte propio, no fine-tune).
+
+- U-Net 2D `base_features=16`, `depth=4`, GroupNorm, bilinear, dropout 0; `build_model` ya está en
+  `src/models/unet2d.py` (solo cambia `in_channels: 3`).
+- AdamW `lr=1e-4`, `wd=1e-5`; cosine `T_max = scheduler.max_epochs`; batch 1; clip 1.0; `16-mixed`;
+  gradient checkpointing en el forward 2D.
+- Horizonte de referencia: **200 épocas, patience 30, `N_train_ref=265`** (train normo de `split_v1`).
+- **Propuesta (a confirmar):** `factor = 265/280 = 0.9464` → `max_epochs=scheduler.max_epochs=189`,
+  `patience=28`. Registrar el factor en el record.
+- `warmup_epochs` está desconectado en `configure_optimizers()` (dead config, se replica).
+- **Factor confirmado (2026-10-20):** 0.946429 → 189 épocas, patience 28.
+- **Montado:** `src/models/a0_module.py` (MAE body, forward por chunks de 32 cortes con checkpointing),
+  `configs/exp_a0_001_unet2d.yaml`, `scripts/train_a0.py` (asserts de factor/N_train, escribe
+  `results/<exp>/record.json`), `src/eval/dvh.py` (harness compartido: bandas, IC95 bootstrap por sitio,
+  diferencia pareada), `scripts/eval_a0.py` (`net` | `baseline` | `compare`; default val).
+- **Baseline v2b:** curvas en `results/baseline_v2b/` (solo train), scoreada en val en
+  `results/baseline_v2b_eval/`. Val, OAR banda media / PTV banda alta (pp, IC95 en summary.json):
+  CyC 9.03 / 5.66 · Pelvis 6.82 / 2.58 · Próstata 3.77 / 6.35.
+- **Run `exp_a0_001_unet2d` terminado** (early stop; mejor ckpt `checkpoints/exp_a0_001_unet2d/epoch=097.ckpt`,
+  val/mae 2.4236; ~8 min/época, ~4.4 GB VRAM). Evaluado en **val** (test intacto), 0 fallas de sanity.
+- **Resultado A0 vs baseline (val, pp, IC95 pareado; >0 = red mejor):**
+  OAR banda media — CyC +6.82 [5.76,8.08] · Pelvis +3.52 [2.39,4.55] · Próstata +1.57 [0.86,2.26].
+  PTV banda alta — CyC −0.57 [−1.81,0.73] · Pelvis −1.58 [−3.58,−0.05] · Próstata +0.80 [−0.64,2.20]
+  (empate o peor que la baseline en PTV). Red en pp: OAR media 2.21 / 3.30 / 2.20; PTV alta 6.23 / 4.15 / 5.54.
+- **Secundarias (val):** MAE body CyC 2.37 · Pelvis 3.40 · Próstata 1.51; SSIM 0.38 / 0.66 / 0.67.
+  `dose_score_openkbp` **removido del reporte** (idéntico al MAE body). MAE body incluye soporte/inmovilizadores
+  (`mask_BODY` = External de Eclipse, correcto): no comparar MAE body entre pacientes/sitios.
+- **IC degenerados (HO#3):** `bootstrap_ci` ahora devuelve `std` y `degenerate` (std entre pacientes = 0). Las cells
+  per-estructura con `degenerate=true` (33/252 en la red) son bandas donde la estructura no recibe dosis (p.ej.
+  CyC Cochlea_R / Eye_R: Dmax < 33% Rx en todo val → V(D≥40%)=0): IC trivial, no un bug. No leer como precisión.
+
+## A-eje — estado (2026-10-24)
+
+- **A1 cerrado:** representación ganadora = **fill 0 + goals uniformes** (6 canales). La modulación por distancia (A1b)
+  no aportó: la coherencia (SSIM) la da *tener* goals, no modularlos.
+- **A2 y A3 diferidos** a la evaluación fuera de distribución (multi-protocolo / zero-shot): son intención estática por
+  protocolo, redundantes en distribución.
+- **A4 corrido (HO#8):** A1-uniform + Ch6 = PSDM de `PTV_High` (7 canales). `exp_a4_001_unet2d_psdm`, lanzado 2026-10-24
+  con `scripts/run_a4.sh` (train + eval en val; test intacto). Todo lo demás congelado e idéntico a A1-uniform
+  (hash `7ab16f73fa632a3e`, 189 épocas / patience 28, seed 42). Comparador: `scripts/compare_a4.py` (A4 vs A1-uniform vs A0).
+  - **PSDM portado de próstata** (`calcular_psdm`, proyecto viejo): EDT(fuera) − EDT(dentro) en mm nativos, /10 → cm,
+    /15 cm (`PSDM_NORM_CM`), signo + afuera / − adentro, sin clip. Próstata usaba 3 canales (PTV, Rectum, Bladder); A4 solo el del PTV.
+  - **Multi-PTV:** PSDM de `PTV_High` (la unión cruda mis-ordenaba CyC). Padding in-plane del canal = 1.0 (no 0 = borde).
+  - Código: `src/datamodules/a4_datamodule.py`; smoke 0 fallas en los 432 pacientes.
+  - **Resultado (val, mejor ckpt epoch=105, early stop en 133; `results/exp_a4_001_unet2d_psdm/`, comparación en `results/exp_a4_comparison.json`):**
+    PTV alta CyC 6.23 (A0) / 8.41 (A1u) / **7.00** (A4); SSIM CyC 0.375 / 0.608 / 0.571, Pelvis 0.656 / 0.781 / 0.815, Próstata 0.674 / 0.776 / 0.856;
+    OAR media plana en los 3 sitios; MAE body Pelvis 3.35→2.49 y Próstata 1.32→0.92, CyC sin cambio.
+  - **Bug de eval corregido:** `eval_a0.py` rellenaba el PSDM con 0 en vez de 1.0 (train sí usaba 1.0) → primer eval inválido
+    (archivado en `results/exp_a4_001_unet2d_psdm_evalbug_pad0/`, no usar). Ahora el padding sale de `ds.pad_channels()`, único punto para train y eval.
+  - **HO#9 cerrado — dist-solo (A0 + PSDM, 4 canales, sin goals):** `exp_a4_002_unet2d_distsolo`, mejor ckpt epoch=118, corrido con
+    `scripts/run_a4solo.sh`. PSDM y padding idénticos a A4 (verificado: Ch0-2 = A0 y PSDM = Ch6 de A4, pad 1.0). Cierra el 2×2;
+    comparador `scripts/compare_2x2.py` (regla de poda: dist-solo ≈ A4 en SSIM/PTV → se dropean los goals).
+    **Sin piso de ruido (decisión 2026-10-25, §11):** la réplica A0 seed 43 se canceló y sus artefactos se borraron (ver `cabos_sueltos.md`); el veredicto de HO#9 se lee con el rango entre las 4 celdas + IC95 pareado, por sitio, y se declara sin piso.
+  - **Resultado 2×2 (val, `results/exp_a4_2x2_comparison.json`; celdas A0 / A1u / A4 / dist-solo):**
+    SSIM CyC 0.375/0.608/0.571/**0.476**, Pelvis 0.656/0.781/0.815/**0.735**, Próstata 0.674/0.776/0.856/**0.733** →
+    dist-solo cae claro vs A4 en los 3 sitios (−0.10 / −0.08 / −0.12, IC95 sin 0; 41–68% del rango de las 4 celdas) pero sigue sobre A0 (+0.06 a +0.10).
+    PTV alta CyC 6.23/8.41/7.00/6.13 (dist-solo vs A4 +0.87 [0.00,1.79]), Pelvis ≈ igual, Próstata peor sin goals (−0.95 [−1.83,−0.08]).
+    OAR media plana; MAE body dist-solo ≈ A4.
+  - **Veredicto de poda (sin piso de ruido, por sitio):** los goals **se quedan** — aportan coherencia (SSIM) más allá de la geometría en los 3 sitios;
+    **A4 (goals + PSDM) es la representación del bloque intención/geometría.** Costo conocido: en CyC el PTV alta queda ~0.9 pp peor que sin goals
+    (IC borde-cero). Siguiente: A5 (densidad).
+  - Rama opcional (hecha en HO#9): A4 sobre A0 (sin goals) para atribuir crédito, solo si el primario muestra que A4 ayuda.
+
 ## Pendiente / abierto (Fase 2)
 
-- Loop de train de A0 y configs (`configs/` apunta a `npz_v2b_body` + `split_v2.json`; registrar hash).
-- Baseline no-aprendida (DVH promedio por sitio/rol) como control en paralelo.
+- Correr **HO#2** (train A0: config + U-Net 2D fija, MAE, escala de épocas `factor=N_train_ref/280`,
+  `scheduler.max_epochs` al horizonte) y **HO#2b** (baseline). `configs/` apunta a `npz_v2b_body` +
+  `split_v2.json`; registrar hash de tabla.
+- **Gate del MAE body (barato, antes de leer el número):** verificar que `mask_BODY` se rasteriza del
+  **External** del paciente, sin couch ni inmovilización — alimenta Ch2 **y** la métrica a la vez. El
+  MAE body nace con v2 (contorno real) y **no es comparable** con ningún "body" de la era v1 (bbox).
 - Padding en Z si se quiere `batch_size>1`.
 - Rama 3D rota (`build_model_3d` ausente): no bloquea Fase 2, la necesita Fase 3.
-- Vara de Fase 1 (`dvh_curva_completa`, banda media 40–80%: Rectum 7.30, Bladder 3.34): referencia de
-  orden de magnitud, no umbral (cambian cohorte y normalización).
 - Ruido de punto flotante en `spacing_z_mm` de ~30 pacientes (3.0000004 en vez de 3.0): inocuo,
   no usar como clave.

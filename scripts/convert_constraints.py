@@ -249,6 +249,8 @@ def fmt_metric(m):
         extra += f", tol: {m['tol']}"
     if 'unified_from' in m:
         extra += f", unified_from: {m['unified_from']}"
+    if m.get('channels'):
+        extra += f", channels: [{', '.join(m['channels'])}]"
     return (f"      - {{metric: {{{inner}}}, limit: {{{lim}}}{extra}}}"
             f"   # {m['_label']}")
 
@@ -278,7 +280,10 @@ def emit_yaml(res):
     L.append("oars:")
     for rol in sorted(res['oars']):
         L.append(f"  {rol}:")
+        has_dmax = any(x['type'] == 'Dmax' for x in res['oars'][rol])
         for m in res['oars'][rol]:
+            if m['type'] == 'D' and 'param' in m:   # casi-máximo volumétrico: ruteo explícito (CHARTER §10)
+                m['channels'] = ['volumetrico'] + ([] if has_dmax else ['maximos'])
             L.append(fmt_metric(m))
     return '\n'.join(L)
 

@@ -65,3 +65,64 @@ class HarmonizationTable:
         rx = self.protocol(site, protocol_id)['rx_gy']
         high = rx['PTV_High']
         return {lvl: float(v) / float(high) for lvl, v in rx.items()}
+
+    # ---- goals de OAR (A1): se construyen al cargar desde la tabla (CHARTER §5) ----
+    def oar_goals(self, site: str, protocol_id: str) -> dict:
+        """{rol OAR: [goal]} con valores normalizados a fracción de Rx_High (1.0 = Rx_High).
+
+        goal = {'channels': [...], 'ceiling': float, 'budget_frac': float|None, 'budget_cm3': float|None,
+                'conditional': bool, 'label': str}. `budget_*` solo en los volumétricos (fracción del volumen
+        que PUEDE superar el techo; la preservada es 1-budget). Usa `limit` (no `tol`).
+        """
+        rx_high = float(self.protocol(site, protocol_id)['rx_gy']['PTV_High'])
+
+        def frac(v, unit):
+            if unit == 'Gy':
+                return float(v) / rx_high
+            if unit == 'pct_rx':
+                return float(v) / 100.0
+            raise HarmonizationError(f'unidad de dosis no soportada: {unit!r}')
+
+        def budget(v, unit):
+            if unit == 'pct_vol':
+                return float(v) / 100.0, None
+            if unit == 'cm3':
+                return None, float(v)
+            raise HarmonizationError(f'unidad de volumen no soportada: {unit!r}')
+
+        out = {}
+        for role, goals in self._sites[site].get('oars', {}).items():
+            for g in goals:
+                m, lim = g['metric'], g['limit']
+                label = f"{site}/{role}: {m['type']}" + (f"{m['param']}{m['param_unit']}" if 'param' in m else '')
+                if lim['op'] != 'le':
+                    raise HarmonizationError(f'{label}: op {lim["op"]!r} no soportado en OAR (solo le)')
+                t = m['type']
+                b_frac = b_cm3 = None
+                if t == 'Dmax':
+                    ch, ceil = ['maximos'], frac(lim['value'], lim['unit'])
+                elif t == 'Dmean':
+                    ch, ceil = ['medias'], frac(lim['value'], lim['unit'])
+                elif t == 'V':       # techo = dosis del V; presupuesto = límite de volumen
+                    ch, ceil = ['volumetrico'], frac(m['param'], m['param_unit'])
+                    b_frac, b_cm3 = budget(lim['value'], lim['unit'])
+                elif t == 'D':       # techo = límite de dosis; presupuesto = volumen del Dx
+                    if not g.get('channels'):
+                        raise HarmonizationError(f'{label}: casi-máximo volumétrico sin `channels` explícito (CHARTER §10)')
+                    ch, ceil = list(g['channels']), frac(lim['value'], lim['unit'])
+                    b_frac, b_cm3 = budget(m['param'], m['param_unit'])
+                else:
+                    raise HarmonizationError(f'{label}: tipo de métrica no soportado')
+                bad = set(ch) - {'maximos', 'medias', 'volumetrico'}
+                if bad:
+                    raise HarmonizationError(f'{label}: canales inválidos {sorted(bad)}')
+                out.setdefault(role, []).append({'channels': ch, 'ceiling': ceil, 'budget_frac': b_frac,
+                                                 'budget_cm3': b_cm3, 'conditional': bool(g.get('conditional')),
+                                                 'label': label})
+        return out
+
+    def conditional_goals(self) -> list:
+        """Goals `conditional: true` de todos los sitios: tratados como normales en A1, diferidos a A3."""
+        return sorted(f"{site}/{role}: {g['metric']['type']}" + (f"{g['metric']['param']}{g['metric']['param_unit']}" if 'param' in g['metric'] else '')
+                      for site, t in self._sites.items() for role, gl in t.get('oars', {}).items()
+                      for g in gl if g.get('conditional'))

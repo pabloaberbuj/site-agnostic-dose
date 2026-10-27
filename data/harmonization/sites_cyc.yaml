@@ -33,14 +33,14 @@ oars:
   A_Carotid_R:
       - {metric: {type: Dmax}, limit: {op: le, value: 40.0, unit: Gy}, priority: 4}   # A_Carotid_R: Dmax
   Bone_Mandible:
-      - {metric: {type: D, param: 2.0, param_unit: pct_vol}, limit: {op: le, value: 70.0, unit: Gy}, priority: 4, tol: 75.0}   # Bone_Mandible: D2%
+      - {metric: {type: D, param: 2.0, param_unit: pct_vol}, limit: {op: le, value: 70.0, unit: Gy}, priority: 4, tol: 75.0, channels: [volumetrico, maximos]}   # Bone_Mandible: D2%
   BrachPlex_PRV5_L:
       - {metric: {type: Dmax}, limit: {op: le, value: 66.0, unit: Gy}, priority: 3, tol: 70.0, unified_from: D0.035cm3}   # BrachPlex_PRV5_L: D0.035cm3
   BrachPlex_PRV5_R:
       - {metric: {type: Dmax}, limit: {op: le, value: 66.0, unit: Gy}, priority: 3, tol: 70.0, unified_from: D0.035cm3}   # BrachPlex_PRV5_R: D0.035cm3
   Brain:
       - {metric: {type: Dmax}, limit: {op: le, value: 68.0, unit: Gy}, priority: 3}   # Brain: Dmax
-      - {metric: {type: D, param: 1.0, param_unit: cm3}, limit: {op: le, value: 58.0, unit: Gy}, priority: 3}   # Brain: D1cm3
+      - {metric: {type: D, param: 1.0, param_unit: cm3}, limit: {op: le, value: 58.0, unit: Gy}, priority: 3, channels: [volumetrico]}   # Brain: D1cm3
   Brainstem_PRV05:
       - {metric: {type: Dmax}, limit: {op: le, value: 54.0, unit: Gy}, priority: 1, tol: 60.0}   # Brainstem_PRV05: Dmax
   Cochlea_L:
@@ -67,9 +67,9 @@ oars:
       - {metric: {type: V, param: 50.0, param_unit: Gy}, limit: {op: le, value: 60.0, unit: pct_vol}, priority: 4, conditional: true}   # Glnd_Thyroid: V50Gy
       - {metric: {type: V, param: 60.0, param_unit: Gy}, limit: {op: le, value: 10.0, unit: cm3}, priority: 4, conditional: true}   # Glnd_Thyroid: V60Gy
   Joint_TM_L:
-      - {metric: {type: D, param: 2.0, param_unit: pct_vol}, limit: {op: le, value: 70.0, unit: Gy}, priority: 4, tol: 75.0}   # Joint_TM_L: D2%
+      - {metric: {type: D, param: 2.0, param_unit: pct_vol}, limit: {op: le, value: 70.0, unit: Gy}, priority: 4, tol: 75.0, channels: [volumetrico, maximos]}   # Joint_TM_L: D2%
   Joint_TM_R:
-      - {metric: {type: D, param: 2.0, param_unit: pct_vol}, limit: {op: le, value: 70.0, unit: Gy}, priority: 4, tol: 75.0}   # Joint_TM_R: D2%
+      - {metric: {type: D, param: 2.0, param_unit: pct_vol}, limit: {op: le, value: 70.0, unit: Gy}, priority: 4, tol: 75.0, channels: [volumetrico, maximos]}   # Joint_TM_R: D2%
   Larynx:
       - {metric: {type: Dmean}, limit: {op: le, value: 35.0, unit: Gy}, priority: 4}   # Larynx: Dmedia
   Lens_L:

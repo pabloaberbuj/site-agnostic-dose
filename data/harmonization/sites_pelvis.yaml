@@ -38,6 +38,7 @@ oars:
       - {metric: {type: Dmean}, limit: {op: le, value: 15.0, unit: Gy}, priority: 3}   # Kidney_R: Dmedia (manual, Paso 2 — no viene de la plantilla)
   Kidneys:
       - {metric: {type: Dmean}, limit: {op: le, value: 15.0, unit: Gy}, priority: 3}   # Kidneys: Dmedia (manual, Paso 2 — no viene de la plantilla)
+  # ENTRADA MUERTA (A1, 2026-10-21): PenileBulb tiene goals acá pero ningún paciente Pelvis del NPZ v2b lo trae; no pinta nada.
   PenileBulb:
       - {metric: {type: V, param: 48.0, param_unit: Gy}, limit: {op: le, value: 3.0, unit: cm3}, priority: 3}   # PenileBulb: V48Gy
       - {metric: {type: Dmean}, limit: {op: le, value: 50.0, unit: Gy}, priority: 3}   # PenileBulb: Dmedia

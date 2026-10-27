@@ -92,10 +92,14 @@ class A0PatientDataset(Dataset):
         chans = build_a0_channels(masks, ratios, self.table, dose.shape, pid)
         return dose, chans, meta
 
+    def pad_channels(self, chans: np.ndarray) -> np.ndarray:
+        """(C,Z,H,W) -> (C,Z,pad,pad). Único punto de padding de canales (train y eval); las subclases fijan el valor por canal."""
+        return pad_hw_center(chans, self.pad_hw)
+
     def __getitem__(self, idx: int) -> dict:
         pid = self.ids[idx]
         dose, chans, meta = self.load_raw(pid)
-        x = pad_hw_center(chans, self.pad_hw).transpose(1, 0, 2, 3)   # (Z, 3, H, W)
+        x = self.pad_channels(chans).transpose(1, 0, 2, 3)   # (Z, 3, H, W)
         y = pad_hw_center(dose, self.pad_hw)                           # (Z, H, W)
         return {
             'input': torch.from_numpy(np.ascontiguousarray(x)),
@@ -125,8 +129,11 @@ class A0DataModule(pl.LightningDataModule):
         missing = [p for s in ('train', 'val', 'test') for p in splits[s] if p not in index]
         if missing:
             raise DataError(f'{len(missing)} pacientes del split sin NPZ en {self.npz_dir}: {missing[:5]}')
-        mk = lambda s: A0PatientDataset(splits[s], index, self.table, self.pad_hw)
+        mk = lambda s: self._make_ds(splits[s], index)
         self.train_ds, self.val_ds, self.test_ds = mk('train'), mk('val'), mk('test')
+
+    def _make_ds(self, ids, index):
+        return A0PatientDataset(ids, index, self.table, self.pad_hw)
 
     def experiment_record(self) -> dict:
         """Lo que el config/record del experimento debe registrar (CHARTER §5: hash de la tabla)."""

@@ -1,0 +1,2 @@
+[exp_a4_002_unet2d_distsolo] best ckpt: C:\Pablo\Site Agnostic\repo\site-agnostic-dose\checkpoints\exp_a4_002_unet2d_distsolo\epoch=118.ckpt
+dist-solo train+eval completo

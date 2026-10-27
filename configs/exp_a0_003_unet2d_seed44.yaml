@@ -1,0 +1,62 @@
+# ============================================================
+# Fase 2 / HO#5 — piso de ruido: réplica de exp_a0_001 con seed 44 (única diferencia). A0: geometría + intención (SIN goals), MAE puro, U-Net 2D fija.
+# Un solo modelo site-agnostic pooled (Próstata + Pelvis + CyC, VMAT-only).
+#
+# Referencia de entrenamiento: exp002_unet2d_psdm_ctfix_fov34 (run desde cero, proyecto viejo):
+#   200 épocas, patience 30, N_train_ref = 265, AdamW lr 1e-4 / wd 1e-5, cosine, batch 1.
+# Escala por pasos de gradiente (CHARTER §5, batch=1):
+#   factor = N_train_ref / N_train = 265 / 280 = 0.946429
+#   max_epochs = round(200 * factor) = 189   (scheduler.max_epochs == training.max_epochs)
+#   patience   = round(30  * factor) = 28
+# ============================================================
+
+experiment:
+  name: exp_a0_003_unet2d_seed44
+  description: "A0 (Ch0 intención PTV con ratios Rx/Rx_High, Ch1 OAR consolidado, Ch2 body), MAE puro, U-Net 2D, pooled 3 sitios"
+  seed: 44
+
+data:
+  npz_dir: "../../data/npz_v2b_body"
+  splits_file: "data/splits/split_v2.json"
+  harmonization_dir: "data/harmonization"
+  pad_hw: 256
+  batch_size: 1
+  num_workers: 0
+  pin_memory: true
+
+model:
+  arch: "unet2d"
+  in_channels: 3
+  out_channels: 1
+  base_features: 16
+  depth: 4
+  upsample_mode: "bilinear"
+  dropout: 0.0
+  slice_chunk: 32            # cortes por chunk con gradient checkpointing (numéricamente idéntico, menos VRAM)
+
+loss:
+  name: "masked_mae_body"    # MAE puro dentro del body (Ch2). DVH-loss queda para Fase 4.
+
+optimizer:
+  name: "adamw"
+  lr: 1.0e-4
+  weight_decay: 1.0e-5
+
+scheduler:
+  name: "cosine"
+  max_epochs: 189            # horizonte COMPLETO, independiente de trainer.max_epochs (CHARTER §5)
+
+training:
+  max_epochs: 189
+  precision: "16-mixed"
+  gradient_clip_val: 1.0
+  early_stopping_patience: 28
+  monitor_metric: "val/mae"
+  monitor_mode: "min"
+
+epoch_scale:
+  n_train_ref: 265
+  n_train: 280
+  ref_max_epochs: 200
+  ref_patience: 30
+  factor: 0.946429

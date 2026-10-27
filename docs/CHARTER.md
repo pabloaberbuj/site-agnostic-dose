@@ -4,8 +4,9 @@
 > decisiones estructurales. Si algo de acá hay que cambiar, que chat o Claude Code lo
 > señalen explícitamente y se actualice este archivo — no se corrige "de facto" en otros lados.
 >
-> Última actualización: Fase 0 — armonización cerrada con datos reales (PRV, resolución de PTV,
-> QA gate, pacientes fuera de convención, red sobre grilla nativa, D0.035cm³≡Dmax, NPZ solo geometría).
+> Última actualización: Fase 2 en curso — §11 (nivel de rigor y criterio de corte) + archivo de cabos
+> sueltos agregados. (Fase 0: armonización cerrada — PRV, resolución de PTV, QA gate, pacientes fuera
+> de convención, red sobre grilla nativa, D0.035cm³≡Dmax, NPZ solo geometría.)
  
 ---
  
@@ -272,7 +273,8 @@ C:\Pablo\SiteAgnostic\
 │       ├── docs\
 │       │   ├── CHARTER.md              # este archivo (Tier 1)
 │       │   ├── contexto_fase_vigente.md    # Tier 2, doc vivo de la fase actual
-│       │   └── aprendizajes_transversales.md   # Tier 3, append-only curado
+│       │   ├── aprendizajes_transversales.md   # Tier 3, append-only curado
+│       │   └── cabos_sueltos.md         # cabos sueltos diferidos (Tier 3, §11)
 │       └── data\                # chica: SOLO splits/ y harmonization/, va a git
 │           ├── splits\          # json de splits — definen la reproducibilidad de cada experim.
 │           └── harmonization\   # tabla sitio→(OAR,métrica)→(goal,prioridad)
@@ -289,7 +291,7 @@ C:\Pablo\SiteAgnostic\
 **Van a git aunque parezcan datos:** splits y tabla de armonización (fuente de verdad de
 nombres/goals/prioridades — código disfrazado de datos), ambos en `repo\...\data\`. Todo lo
 pesado vive en la carpeta hermana `SiteAgnostic\data\` y queda afuera de git.
-
+ 
 **De-identificación:** las listas de pacientes traen nombre, apellido e historia clínica. En git
 solo existe `patient_id` anónimo (splits, metadata); el mapeo HC→`patient_id` vive únicamente en
 `SiteAgnostic\data\`, fuera de git.
@@ -331,6 +333,8 @@ Tres tiers separados por ciclo de vida:
   a través de fases**. Refleja siempre "qué es verdad ahora", no la traza.
 - **Tier 3 — Fases cerradas + aprendizajes (`aprendizajes_transversales.md` y archivos de fase
   congelados).** Append-only, curado. Memoria institucional en una línea con puntero por ítem.
+- **Cabos sueltos (`cabos_sueltos.md`, Tier 3).** Detalles diferidos por el criterio de corte (§11):
+  se anotan en una línea y se revisan al cerrar un bloque o en un punto ciego, no en el momento.
 **Handoff chat ↔ Code:** el contexto de fase vive como archivo (repo / doc del Project). NO se
 pega entero en el chat. Al volver de Code al chat, se trae solo el **delta** (metrics.csv +
 summary.json + resumen corto), no el doc. (Este patrón funcionó en próstata y evita el consumo
@@ -373,3 +377,30 @@ Fase 0 puede aparecer en Fase 2). Los archivos de Tier 3 son legibles y reabribl
 - Estrategia de parches: ROI-crop agresivo (nnDoseNet) + parches grandes para preservar
   contexto global (la dosis es no-local) — evitar parches chicos sobre volumen full-body.
  
+
+---
+
+## 11. Nivel de rigor y criterio de corte
+
+El criterio no es rigor sí / rigor no, sino **si una conclusión o el resultado global cuelga del
+detalle**. Tres niveles:
+
+- **Se persigue a fondo (no negociable) — lo que *invalida*:** leakage, contaminación de datos,
+  split mal hecho, comparar cohortes/normalizaciones distintas sin avisar, decidir sobre una sola
+  métrica cuando otra dice lo contrario, IC que miente. (Ej.: el SSIM de A1a — no era puntillismo,
+  era una conclusión equivocada por leer una sola métrica; la contaminación nodal de próstata, §7.)
+- **Se decide y se anota en una línea — lo que a lo sumo *afina*:** hiperparámetros dentro de un
+  rango sensato, perillas con efecto menor al ruido, segundas corridas para pulir un número que ya
+  decidió otra métrica, ramas "¿y si...?" que no cambian el paso siguiente. Default: elección
+  razonable + una línea de por qué + seguir. Se reabre solo si un resultado posterior lo vuelve
+  relevante (ej.: el piso de ruido seed-a-seed — instrumentación que hoy no decide nada; se mide a
+  medida si una ablación futura cae en zona gris).
+- **Sesgo por defecto: avanzar > exhaustividad.** Un proyecto maduro y sin errores metodológicos no
+  es uno donde se exploró todo, sino uno donde lo decidido está bien decidido y lo dejado está
+  *registrado* como decisión consciente, no como olvido. Un cabo suelto registrado es alcance
+  delimitado, no deuda. Contexto: tiempo clínico fragmentado; esto es además formación en DL.
+
+**Reparto:** el chat lleva la metodología de DL / análisis de datos / estadística; Code la programación.
+
+**`cabos_sueltos.md` (Tier 3):** donde aterriza el nivel 2. Cada entrada: qué es, por qué se difirió, y
+qué resultado lo reabriría. Se revisa al cerrar un bloque/fase o al llegar a un punto ciego, no antes.

@@ -1,0 +1,67 @@
+{
+  "exp_id": "exp_a0_001_unet2d",
+  "harmonization_hash": "2a0c2037686c2978",
+  "npz_dir": "C:\\Pablo\\Site Agnostic\\repo\\site-agnostic-dose\\..\\..\\data\\npz_v2b_body",
+  "splits_file": "C:\\Pablo\\Site Agnostic\\repo\\site-agnostic-dose\\data\\splits\\split_v2.json",
+  "pad_hw": 256,
+  "epoch_scale": {
+    "n_train_ref": 265,
+    "n_train": 280,
+    "ref_max_epochs": 200,
+    "ref_patience": 30,
+    "factor": 0.946429
+  },
+  "cfg": {
+    "experiment": {
+      "name": "exp_a0_001_unet2d",
+      "description": "A0 (Ch0 intenci\u00f3n PTV con ratios Rx/Rx_High, Ch1 OAR consolidado, Ch2 body), MAE puro, U-Net 2D, pooled 3 sitios",
+      "seed": 42
+    },
+    "data": {
+      "npz_dir": "../../data/npz_v2b_body",
+      "splits_file": "data/splits/split_v2.json",
+      "harmonization_dir": "data/harmonization",
+      "pad_hw": 256,
+      "batch_size": 1,
+      "num_workers": 0,
+      "pin_memory": true
+    },
+    "model": {
+      "arch": "unet2d",
+      "in_channels": 3,
+      "out_channels": 1,
+      "base_features": 16,
+      "depth": 4,
+      "upsample_mode": "bilinear",
+      "dropout": 0.0,
+      "slice_chunk": 32
+    },
+    "loss": {
+      "name": "masked_mae_body"
+    },
+    "optimizer": {
+      "name": "adamw",
+      "lr": 0.0001,
+      "weight_decay": 1e-05
+    },
+    "scheduler": {
+      "name": "cosine",
+      "max_epochs": 189
+    },
+    "training": {
+      "max_epochs": 189,
+      "precision": "16-mixed",
+      "gradient_clip_val": 1.0,
+      "early_stopping_patience": 28,
+      "monitor_metric": "val/mae",
+      "monitor_mode": "min"
+    },
+    "epoch_scale": {
+      "n_train_ref": 265,
+      "n_train": 280,
+      "ref_max_epochs": 200,
+      "ref_patience": 30,
+      "factor": 0.946429
+    }
+  }
+}
