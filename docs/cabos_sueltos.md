@@ -66,3 +66,12 @@ Reabre: al montar 3D — un modelo con contexto volumétrico podría usar la den
 Misma familia que el check cráneo-caudal de CyC. Nota menor: para 54/503 pacientes (Brilliance 16, MX
 16-slice, 1 ARIA) se usó la curva Big Bore por falta de la propia; conseguir las curvas si se reabre
 densidad.
+
+**A6 beam plate: no corrido en VMAT-only, diferido a fase IMRT.** Qué: análisis geométrico (Code) mostró
+que con arcos coplanares ~360°, el beam plate templado (sin forma de campo) colapsa a |z−z_iso| →
+redundante con PSDM. La única info direccional (CyC parciales = homolaterales, ~11%) es derivable de la
+geometría de PTV mid/low que la red ya tiene; la forma de campo (MLC/BEV) viene del plan real, no se
+templa ni existe en inferencia. Por qué se difirió: resultado predeterminado (plano); no se corrió (§11:
+análisis estático > corrida confirmatoria). Reabre: fase IMRT/multi-técnica, donde el beam plate distingue
+arco vs 7-campos (geometrías muy distintas). Nota: aun ahí, sin forma de campo templada queda un piso de
+mismatch real-vs-templado.

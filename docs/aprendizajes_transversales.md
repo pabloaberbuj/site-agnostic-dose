@@ -117,3 +117,20 @@
 
 - **Operacional:** no lanzar corridas GPU en background con `&` — un doble lanzamiento
   contendió por GPU y por el directorio de checkpoints. [Tier 2, notas vivas Fase 1]
+
+## De Fase 2 (eje A)
+
+- **Leer el set COMPLETO de métricas por sitio, nunca una sola.** El SSIM de A1 casi se descarta mirando
+  solo DVH-OAR: los goals no movían la DVH pero subían fuerte la coherencia. Una métrica habría tirado un
+  canal útil. (→ `fase2_cerrada.md`.)
+- **Canales estáticos por protocolo son redundantes en-distribución.** Goals (y prioridad) tienen valor
+  constante por sitio → la red no puede *aprender a responder* a ellos, solo usarlos de huella de sitio.
+  Su payoff es fuera de distribución (multi-protocolo / zero-shot). Lo que mueve la aguja es lo
+  **paciente-específico** (PSDM distance map). Vale para cualquier canal de "intención" a futuro.
+- **Goals = prior de coherencia espacial, no de DVH.** Y el PSDM (PTV distance map) **sí aporta
+  multi-sitio**, al revés que Xiong (donde no aportó) — recupera PTV cerca del target.
+- **Un análisis estático puede reemplazar una corrida.** A6 (beam plate): con arcos coplanares ~360° el
+  mapa colapsa a una rampa en z ≈ PSDM → resultado predeterminado, no se corrió. (§11 en acción.)
+- **Bug train/eval de padding de canales (A4):** el canal nuevo se rellenaba distinto en train (1.0) vs
+  eval (0) → números absurdos. Unificar el padding en un solo método. Familia: consistencia
+  train/inferencia (como la dose-mask del dose_score y el `cargar_ct` de próstata).
