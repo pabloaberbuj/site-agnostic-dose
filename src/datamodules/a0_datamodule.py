@@ -14,6 +14,10 @@ para la U-Net 2D: input (Z, 3, H, W), dose (Z, H, W). Con batch_size=1 nunca se 
 pacientes distintos. Padding in-plane centrado a (pad_hw, pad_hw) sobre la grilla de dosis nativa
 (sin resamplear); un paciente más grande que pad_hw falla ruidoso, no se recorta.
 
+Marco in-plane (`Frame`): `pad_hw` puede ser un int (legacy, cuadrado, sin recorte) o un `Frame` rectangular
+(Hc, Wc) con `crop_body=True`: recorte centrado al bbox del BODY del paciente y pad al contenedor fijo global.
+El recorte es invertible con `Frame.undo` (offsets = `Frame.box`); la loss/MAE ya están enmascarados por BODY.
+
 La tabla es input versionado: `experiment_record()` devuelve su hash para el config/record del run.
 """
 import json
@@ -43,6 +47,60 @@ def pad_hw_center(a: np.ndarray, pad_hw: int) -> np.ndarray:
     ph, pw = pad_hw - h, pad_hw - w
     width = [(0, 0)] * (a.ndim - 2) + [(ph // 2, ph - ph // 2), (pw // 2, pw - pw // 2)]
     return np.pad(a, width)
+
+
+class Frame:
+    """Marco in-plane (Hc, Wc). crop_body=False: pad de la grilla completa (== pad_hw_center). crop_body=True: recorta al
+    bbox del BODY (sobre todos los cortes) y luego pad centrado. `box` = (y0, y1, x0, x1) en la grilla nativa."""
+
+    def __init__(self, hw, crop_body: bool = False):
+        self.hw = (int(hw[0]), int(hw[1]))
+        self.crop_body = bool(crop_body)
+
+    def box(self, body: np.ndarray, grid_hw=None):
+        """bbox del BODY (Z,H,W) bool; sin crop_body, la grilla completa."""
+        if not self.crop_body:
+            h, w = body.shape[-2:]
+            return (0, h, 0, w)
+        ys = np.flatnonzero(body.any(axis=(0, 2)))
+        xs = np.flatnonzero(body.any(axis=(0, 1)))
+        if ys.size == 0:
+            raise DataError('BODY vacío: no se puede recortar')
+        return (int(ys[0]), int(ys[-1]) + 1, int(xs[0]), int(xs[-1]) + 1)
+
+    def apply(self, a: np.ndarray, box, fill: float = 0.0) -> np.ndarray:
+        """(..., H, W) -> (..., Hc, Wc): recorta a box y pad centrado con `fill`."""
+        y0, y1, x0, x1 = box
+        h, w = y1 - y0, x1 - x0
+        if h > self.hw[0] or w > self.hw[1]:
+            raise DataError(f'región in-plane {h}x{w} excede el contenedor {self.hw[0]}x{self.hw[1]}')
+        a = a[..., y0:y1, x0:x1]
+        ph, pw = self.hw[0] - h, self.hw[1] - w
+        width = [(0, 0)] * (a.ndim - 2) + [(ph // 2, ph - ph // 2), (pw // 2, pw - pw // 2)]
+        return np.pad(a, width, constant_values=fill)
+
+    def undo(self, p: np.ndarray, box, grid_hw) -> np.ndarray:
+        """(..., Hc, Wc) -> (..., H, W) nativo: saca el pad, repone el recorte; fuera del box queda 0."""
+        y0, y1, x0, x1 = box
+        h, w = y1 - y0, x1 - x0
+        top, left = (self.hw[0] - h) // 2, (self.hw[1] - w) // 2
+        out = np.zeros(p.shape[:-2] + tuple(grid_hw), dtype=p.dtype)
+        out[..., y0:y1, x0:x1] = p[..., top:top + h, left:left + w]
+        return out
+
+    def record(self):
+        return {'hw': list(self.hw), 'crop_body': self.crop_body}
+
+
+def make_frame(pad_hw) -> Frame:
+    """int (legacy cuadrado, sin recorte) o Frame."""
+    return pad_hw if isinstance(pad_hw, Frame) else Frame((pad_hw, pad_hw), crop_body=False)
+
+
+def frame_from_cfg(d):
+    """data.container {hw:[Hc,Wc], crop_body} -> Frame; si no está, data.pad_hw (int legacy)."""
+    c = d.get('container', None)
+    return Frame(tuple(c['hw']), bool(c.get('crop_body', True))) if c else d.pad_hw
 
 
 def build_a0_channels(masks: dict, ratios: dict, table: HarmonizationTable, shape, patient_id: str = None) -> np.ndarray:
@@ -75,6 +133,7 @@ class A0PatientDataset(Dataset):
         self.npz_index = npz_index
         self.table = table
         self.pad_hw = pad_hw
+        self.frame = make_frame(pad_hw)
 
     def __len__(self):
         return len(self.ids)
@@ -92,15 +151,19 @@ class A0PatientDataset(Dataset):
         chans = build_a0_channels(masks, ratios, self.table, dose.shape, pid)
         return dose, chans, meta
 
+    def frame_box(self, chans: np.ndarray):
+        """Box de recorte (en la grilla nativa) de este paciente: sale del canal BODY (Ch2)."""
+        return self.frame.box(chans[CH_BODY] > 0)
+
     def pad_channels(self, chans: np.ndarray) -> np.ndarray:
-        """(C,Z,H,W) -> (C,Z,pad,pad). Único punto de padding de canales (train y eval); las subclases fijan el valor por canal."""
-        return pad_hw_center(chans, self.pad_hw)
+        """(C,Z,H,W) -> (C,Z,Hc,Wc). Único punto de recorte+padding de canales (train y eval); las subclases fijan el valor por canal."""
+        return self.frame.apply(chans, self.frame_box(chans))
 
     def __getitem__(self, idx: int) -> dict:
         pid = self.ids[idx]
         dose, chans, meta = self.load_raw(pid)
         x = self.pad_channels(chans).transpose(1, 0, 2, 3)   # (Z, 3, H, W)
-        y = pad_hw_center(dose, self.pad_hw)                           # (Z, H, W)
+        y = self.frame.apply(dose, self.frame_box(chans))                # (Z, Hc, Wc)
         return {
             'input': torch.from_numpy(np.ascontiguousarray(x)),
             'dose': torch.from_numpy(np.ascontiguousarray(y)),
@@ -138,7 +201,8 @@ class A0DataModule(pl.LightningDataModule):
     def experiment_record(self) -> dict:
         """Lo que el config/record del experimento debe registrar (CHARTER §5: hash de la tabla)."""
         return {'harmonization_hash': self.table.hash, 'npz_dir': str(self.npz_dir),
-                'splits_file': str(self.splits_file), 'pad_hw': self.pad_hw}
+                'splits_file': str(self.splits_file),
+                'pad_hw': self.pad_hw.record() if isinstance(self.pad_hw, Frame) else self.pad_hw}
 
     def _loader(self, ds, shuffle):
         return DataLoader(ds, batch_size=self.batch_size, shuffle=shuffle, num_workers=self.num_workers,

@@ -1,0 +1,63 @@
+# ============================================================
+# Fase 3 / eje B — refresco de la vara 2D en el contenedor nuevo. = exp_a4_001_unet2d_psdm (A4, 7 canales, U-Net 2D) con UN
+# solo cambio: marco in-plane. Antes: pad a 256x256 de la grilla completa. Ahora: recorte centrado al bbox del BODY por
+# paciente + pad al contenedor fijo global (176,256) (bbox BODY máx 163x248 sobre los 432 del split; múltiplo de 16).
+# Guardrail: OAR-media y PTV-alta (frame-independientes) deben reproducir A4-2D dentro de ruido; solo SSIM/MAE-body pueden moverse.
+# ============================================================
+
+experiment:
+  name: exp_a4_003_unet2d_psdm_c176x256
+  description: "A4-2D en contenedor (176,256) con crop-to-BODY; todo lo demás congelado e idéntico a exp_a4_001"
+  seed: 42
+
+data:
+  npz_dir: "../../data/npz_v2b_body"
+  splits_file: "data/splits/split_v2.json"
+  harmonization_dir: "data/harmonization"
+  container:                 # crop centrado al bbox del BODY + pad a (H,W) fijo global
+    hw: [176, 256]
+    crop_body: true
+  datamodule: a4             # A4DataModule: A1 (6 canales) + Ch6 PSDM(PTV_High)
+  goal_mode: uniform
+  fill_sin_goal: 0   # fijo (ganador A1a)
+  ptv_ref: union             # EDT sobre unión de PTVs; fallback 'high' si CyC sale raro
+  batch_size: 1
+  num_workers: 1             # 1 (no 2): la PC tiene ~6.5 GB de RAM libre (VM Hyper-V); cada worker pica ~1.4-2 GB. No cambia resultados
+  pin_memory: true
+
+model:
+  arch: "unet2d"
+  in_channels: 7
+  out_channels: 1
+  base_features: 16
+  depth: 4
+  upsample_mode: "bilinear"
+  dropout: 0.0
+  slice_chunk: 32            # cortes por chunk con gradient checkpointing (numéricamente idéntico, menos VRAM)
+
+loss:
+  name: "masked_mae_body"    # MAE puro dentro del body (Ch2). DVH-loss queda para Fase 4.
+
+optimizer:
+  name: "adamw"
+  lr: 1.0e-4
+  weight_decay: 1.0e-5
+
+scheduler:
+  name: "cosine"
+  max_epochs: 189            # horizonte COMPLETO, independiente de trainer.max_epochs (CHARTER §5)
+
+training:
+  max_epochs: 189
+  precision: "16-mixed"
+  gradient_clip_val: 1.0
+  early_stopping_patience: 28
+  monitor_metric: "val/mae"
+  monitor_mode: "min"
+
+epoch_scale:
+  n_train_ref: 265
+  n_train: 280
+  ref_max_epochs: 200
+  ref_patience: 30
+  factor: 0.946429

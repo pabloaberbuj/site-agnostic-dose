@@ -10,7 +10,7 @@ import json
 
 import numpy as np
 
-from src.datamodules.a0_datamodule import DataError, pad_hw_center
+from src.datamodules.a0_datamodule import DataError
 from src.datamodules.a4_datamodule import (A4DataModule, A4PatientDataset, N_CHANNELS_A4, pad_with_psdm_last)
 from src.config.harmonization import BODY_ROLE
 
@@ -48,8 +48,9 @@ class A5PatientDataset(A4PatientDataset):
 
     def pad_channels(self, chans: np.ndarray) -> np.ndarray:
         """Ch0-6 como A4 (PSDM con pad 1.0), Ch7 densidad con pad 0."""
-        base = pad_with_psdm_last(chans[:-1], self.pad_hw)
-        return np.concatenate([base, pad_hw_center(chans[-1:], self.pad_hw)], axis=0)
+        box = self.frame_box(chans)
+        base = pad_with_psdm_last(chans[:-1], self.frame, box)
+        return np.concatenate([base, self.frame.apply(chans[-1:], box)], axis=0)
 
 
 class A5DataModule(A4DataModule):

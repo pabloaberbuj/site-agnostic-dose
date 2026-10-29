@@ -20,7 +20,7 @@ from pytorch_lightning.loggers import CSVLogger
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from src.datamodules.a0_datamodule import A0DataModule  # noqa: E402
+from src.datamodules.a0_datamodule import A0DataModule, frame_from_cfg  # noqa: E402
 from src.models.a0_module import A0Module  # noqa: E402
 
 
@@ -30,7 +30,7 @@ def build_dm(cfg):
         from src.datamodules.a5_datamodule import A5DataModule
         return A5DataModule(ROOT / d.npz_dir, ROOT / d.splits_file, ROOT / d.harmonization_dir,
                             batch_size=d.batch_size, num_workers=d.num_workers, pin_memory=d.pin_memory,
-                            pad_hw=d.pad_hw, fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
+                            pad_hw=frame_from_cfg(d), fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
                             ptv_ref=d.get('ptv_ref', 'union'), density_dir=ROOT / d.density_dir)
     if d.get('datamodule', 'a0') in ('a1', 'a4'):   # A1: + 3 canales de goals (fill_sin_goal / goal_mode / ptv_ref)
         from src.datamodules.a1_datamodule import A1DataModule
@@ -38,16 +38,16 @@ def build_dm(cfg):
             from src.datamodules.a4_datamodule import A4DataModule as A1DataModule
         return A1DataModule(ROOT / d.npz_dir, ROOT / d.splits_file, ROOT / d.harmonization_dir,
                             batch_size=d.batch_size, num_workers=d.num_workers, pin_memory=d.pin_memory,
-                            pad_hw=d.pad_hw, fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
+                            pad_hw=frame_from_cfg(d), fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
                             ptv_ref=d.get('ptv_ref', 'union'))
     if d.get('datamodule', 'a0') == 'a4solo':   # HO#9: A0 + Ch3 PSDM(PTV_High), sin goals
         from src.datamodules.a4_datamodule import A4SoloDataModule
         return A4SoloDataModule(ROOT / d.npz_dir, ROOT / d.splits_file, ROOT / d.harmonization_dir,
                                 batch_size=d.batch_size, num_workers=d.num_workers,
-                                pin_memory=d.pin_memory, pad_hw=d.pad_hw)
+                                pin_memory=d.pin_memory, pad_hw=frame_from_cfg(d))
     return A0DataModule(ROOT / d.npz_dir, ROOT / d.splits_file, ROOT / d.harmonization_dir,
                         batch_size=d.batch_size, num_workers=d.num_workers,
-                        pin_memory=d.pin_memory, pad_hw=d.pad_hw)
+                        pin_memory=d.pin_memory, pad_hw=frame_from_cfg(d))
 
 
 def main():
@@ -56,6 +56,10 @@ def main():
     ap.add_argument('--fast-dev-run', action='store_true')
     ap.add_argument('--max-epochs', type=int, default=None,
                     help='corte temprano (smoke); scheduler.max_epochs NO cambia, el LR sigue la curva del horizonte completo')
+    ap.add_argument('--report-vram', action='store_true',
+                    help='imprime el pico de VRAM asignada/reservada al final de cada época (canario de headroom)')
+    ap.add_argument('--resume', action='store_true',
+                    help='reanuda desde checkpoints/<exp>/last.ckpt si existe (corridas largas desacopladas)')
     args = ap.parse_args()
 
     cfg = OmegaConf.load(args.config)
@@ -90,12 +94,29 @@ def main():
                       patience=cfg.training.early_stopping_patience, verbose=True),
         LearningRateMonitor(logging_interval='epoch'),
     ]
+    if args.report_vram:
+        class VramReport(pl.Callback):
+            def _rep(self, tag, epoch):
+                g = 2 ** 30
+                print(f'[vram] epoch={epoch} {tag}: pico asignada {torch.cuda.max_memory_allocated() / g:.2f} GiB, '
+                      f'pico reservada {torch.cuda.max_memory_reserved() / g:.2f} GiB '
+                      f'(total {torch.cuda.get_device_properties(0).total_memory / g:.2f} GiB)', flush=True)
+
+            def on_train_epoch_end(self, trainer, pl_module):
+                self._rep('tras train', trainer.current_epoch)
+
+            def on_validation_epoch_end(self, trainer, pl_module):
+                self._rep('tras val', trainer.current_epoch)
+        callbacks.append(VramReport())
     trainer = pl.Trainer(
         max_epochs=args.max_epochs or cfg.training.max_epochs,
         precision=cfg.training.precision, gradient_clip_val=cfg.training.gradient_clip_val,
         logger=CSVLogger(str(ROOT / 'lightning_logs'), name=name), callbacks=callbacks,
         deterministic=False, fast_dev_run=args.fast_dev_run, log_every_n_steps=10)
-    trainer.fit(model, datamodule=dm)
+    last = ckpt_dir / 'last.ckpt'
+    resume = str(last) if args.resume and last.exists() else None
+    print('[resume]', resume or 'desde cero')
+    trainer.fit(model, datamodule=dm, ckpt_path=resume)
     print('best:', trainer.checkpoint_callback.best_model_path, trainer.checkpoint_callback.best_model_score)
 
 

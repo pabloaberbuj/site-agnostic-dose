@@ -26,8 +26,13 @@ class A0Module(pl.LightningModule):
         self.chunk = int(cfg.model.get('slice_chunk', 32))
 
     def forward(self, x):
-        """x: (B, Z, C, H, W) -> (B, Z, H, W). Cortes 2D independientes, en chunks para acotar VRAM."""
+        """x: (B, Z, C, H, W) -> (B, Z, H, W). Cortes 2D independientes, en chunks para acotar VRAM.
+
+        arch == 'unet3d': volumen completo, se permuta a (B, C, Z, H, W) y las convs 3D cruzan Z.
+        """
         B, Z, C, H, W = x.shape
+        if self.cfg.model.arch == "unet3d":
+            return self.model(x.permute(0, 2, 1, 3, 4)).squeeze(1)   # (B, 1, Z, H, W) -> (B, Z, H, W)
         x2 = x.reshape(B * Z, C, H, W)
         outs = []
         for i in range(0, B * Z, self.chunk):

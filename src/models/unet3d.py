@@ -110,3 +110,14 @@ class UNet3D(nn.Module):
             skip = skips[-2 - i]
             x = self._run_block(up, x, skip)
         return self.outc(x)
+
+
+def build_model_3d(cfg) -> nn.Module:
+    return UNet3D(
+        in_channels=cfg.model.in_channels,
+        out_channels=cfg.model.out_channels,
+        base_features=cfg.model.base_features,
+        depth=cfg.model.depth,
+        dropout=cfg.model.dropout,
+        grad_checkpointing=getattr(cfg.model, "grad_checkpointing", False),
+    )

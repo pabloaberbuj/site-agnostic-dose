@@ -23,7 +23,7 @@ import torch
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from src.datamodules.a0_datamodule import pad_hw_center  # noqa: E402
+from src.datamodules.a0_datamodule import frame_from_cfg  # noqa: E402
 from src.eval import dvh  # noqa: E402
 
 DEF_NPZ = ROOT / '../../data/npz_v2b_body'
@@ -42,19 +42,19 @@ def get_ds(split, cfg_data=None):
             ROOT / d.harmonization_dir if d else DEF_HARM)
     if d and d.get('datamodule', 'a0') == 'a5':
         from src.datamodules.a5_datamodule import A5DataModule
-        dm = A5DataModule(*args, pad_hw=d.pad_hw, fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
+        dm = A5DataModule(*args, pad_hw=frame_from_cfg(d), fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
                           ptv_ref=d.get('ptv_ref', 'union'), density_dir=ROOT / d.density_dir)
     elif d and d.get('datamodule', 'a0') in ('a1', 'a4'):
         from src.datamodules.a1_datamodule import A1DataModule
         if d.datamodule == 'a4':
             from src.datamodules.a4_datamodule import A4DataModule as A1DataModule
-        dm = A1DataModule(*args, pad_hw=d.pad_hw, fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
+        dm = A1DataModule(*args, pad_hw=frame_from_cfg(d), fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
                           ptv_ref=d.get('ptv_ref', 'union'))
     elif d and d.get('datamodule', 'a0') == 'a4solo':
         from src.datamodules.a4_datamodule import A4SoloDataModule
-        dm = A4SoloDataModule(*args, pad_hw=d.pad_hw)
+        dm = A4SoloDataModule(*args, pad_hw=frame_from_cfg(d))
     else:
-        dm = A0DataModule(*args, pad_hw=d.pad_hw if d else 256)
+        dm = A0DataModule(*args, pad_hw=frame_from_cfg(d) if d else 256)
     dm.setup()
     return dm, getattr(dm, f'{split}_ds')
 
@@ -99,16 +99,21 @@ def run_net(a):
     model = A0Module.load_from_checkpoint(a.ckpt, cfg=cfg, strict=True, map_location='cpu', weights_only=False)
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
     model.to(dev).eval()
-    rows, sec, fallas = [], [], []
+    rows, sec, fallas, offsets = [], [], [], []
     for i, pid in enumerate(ds.ids):
         dose, chans, meta = ds.load_raw(pid)
         Z, H, W = dose.shape
         x = torch.from_numpy(np.ascontiguousarray(ds.pad_channels(chans).transpose(1, 0, 2, 3)))[None].to(dev)
         with torch.no_grad():
             pred = model(x)[0].cpu().numpy()
-        ph, pw = ds.pad_hw - H, ds.pad_hw - W
-        pred = pred[:, ph // 2:ph // 2 + H, pw // 2:pw // 2 + W]
+        box = ds.frame_box(chans)
+        pred = ds.frame.undo(pred, box, (H, W))   # saca pad y repone el recorte -> grilla nativa (fuera del box = 0)
         masks = masks_from_npz(ds.npz_index[pid])
+        y0, y1, x0, x1 = box
+        for role, m in masks.items():   # el crop no puede dejar fuera de la caja ninguna estructura (pred=0 ahí)
+            if m.any() and (m[:, :y0].any() or m[:, y1:].any() or m[:, :, :x0].any() or m[:, :, x1:].any()):
+                raise RuntimeError(f'{pid}: la máscara {role} sale del box de recorte {box}')
+        offsets.append({'patient_id': pid, 'site': meta['site'], 'H': H, 'W': W, 'y0': y0, 'y1': y1, 'x0': x0, 'x1': x1})
         body = masks['BODY']
         mae_body = float(np.abs(pred - dose)[body].mean())
         predn, f = dvh.renorm_pred(pred, masks['PTV_High'])
@@ -123,6 +128,8 @@ def run_net(a):
             print(f'  {i + 1}/{len(ds.ids)}')
     out = ROOT / a.out_dir
     sec_df = pd.DataFrame(sec)
+    out.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(offsets).to_csv(out / 'crop_offsets.csv', index=False)
     sec_df.to_csv(out.mkdir(parents=True, exist_ok=True) or out / 'secondary_per_patient.csv', index=False)
     secondary = {s: {c: dvh.bootstrap_ci(g[c].values) for c in ('mae_body', 'ssim')}
                  for s, g in sec_df.groupby('site')}

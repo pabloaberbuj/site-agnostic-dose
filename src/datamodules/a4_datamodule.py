@@ -11,7 +11,7 @@ Padding in-plane del canal = 1.0 ("lejos de la estructura", como el PSDM_PAD de 
 import numpy as np
 from scipy.ndimage import distance_transform_edt
 
-from src.datamodules.a0_datamodule import A0DataModule, A0PatientDataset, DataError, pad_hw_center
+from src.datamodules.a0_datamodule import A0DataModule, A0PatientDataset, DataError, Frame, make_frame
 from src.datamodules.a1_datamodule import A1DataModule, A1PatientDataset, N_CHANNELS_A1
 
 CH_PSDM = N_CHANNELS_A1          # 6
@@ -42,11 +42,10 @@ def psdm_channel(npz_path, pid: str, meta: dict) -> np.ndarray:
     return calcular_psdm(ptv, spacing)[None]
 
 
-def pad_with_psdm_last(chans: np.ndarray, pad_hw: int) -> np.ndarray:
-    """Pad centrado: canales previos con 0, el ÚLTIMO canal (PSDM) con PSDM_PAD."""
-    base = pad_hw_center(chans[:-1], pad_hw)
-    psdm = pad_hw_center(chans[-1:] - PSDM_PAD, pad_hw) + PSDM_PAD
-    return np.concatenate([base, psdm], axis=0)
+def pad_with_psdm_last(chans: np.ndarray, frame, box) -> np.ndarray:
+    """Recorte+pad centrado al marco: canales previos con 0, el ÚLTIMO canal (PSDM) con PSDM_PAD."""
+    frame = make_frame(frame)
+    return np.concatenate([frame.apply(chans[:-1], box), frame.apply(chans[-1:], box, fill=PSDM_PAD)], axis=0)
 
 
 class A4PatientDataset(A1PatientDataset):
@@ -56,7 +55,7 @@ class A4PatientDataset(A1PatientDataset):
         return dose, np.concatenate([chans, psdm_channel(self.npz_index[pid], pid, meta)], axis=0), meta
 
     def pad_channels(self, chans: np.ndarray) -> np.ndarray:
-        return pad_with_psdm_last(chans, self.pad_hw)
+        return pad_with_psdm_last(chans, self.frame, self.frame_box(chans))
 
 
 class A4SoloPatientDataset(A0PatientDataset):
@@ -66,7 +65,7 @@ class A4SoloPatientDataset(A0PatientDataset):
         return dose, np.concatenate([chans, psdm_channel(self.npz_index[pid], pid, meta)], axis=0), meta
 
     def pad_channels(self, chans: np.ndarray) -> np.ndarray:
-        return pad_with_psdm_last(chans, self.pad_hw)
+        return pad_with_psdm_last(chans, self.frame, self.frame_box(chans))
 
 
 class A4DataModule(A1DataModule):

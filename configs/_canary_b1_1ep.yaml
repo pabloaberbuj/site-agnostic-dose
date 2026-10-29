@@ -1,0 +1,62 @@
+# ============================================================
+# Fase 3 / eje B — B1: primer vanilla-3D. Representación FIJA en A4 (7 canales, PSDM); único cambio = U-Net 2D -> 3D.
+# Mismo datamodule a4 (volúmenes Z nativo), misma loss/optimizer/scheduler/epoch-scaling que A4 (N_train no cambia -> 189/28).
+# Marco in-plane: contenedor (176,256) con crop-to-BODY (igual que exp_a4_003). Con 256^2 OOM incluso con ckpt; con (176,256)
+# y gradient checkpointing entra en 12 GB (smoke sintético Z=239: pico 8.17 GiB asignado, ~10.7 GiB reservado).
+# ============================================================
+
+experiment:
+  name: exp_b1_canary_1ep
+  description: "CANARIO: 1 época de B1 sobre cohorte real para medir pico de VRAM (no es un experimento)"
+  seed: 42
+
+data:
+  npz_dir: "../../data/npz_v2b_body"
+  splits_file: "data/splits/split_v2.json"
+  harmonization_dir: "data/harmonization"
+  container:                 # crop centrado al bbox del BODY + pad a (H,W) fijo global
+    hw: [176, 256]
+    crop_body: true
+  datamodule: a4             # A4DataModule: A1 (6 canales) + Ch6 PSDM(PTV_High)
+  goal_mode: uniform
+  fill_sin_goal: 0   # fijo (ganador A1a)
+  ptv_ref: union             # EDT sobre unión de PTVs; fallback 'high' si CyC sale raro
+  batch_size: 1
+  num_workers: 1             # 1 (no 2): la PC tiene ~6.5 GB de RAM libre (VM Hyper-V); cada worker pica ~1.4-2 GB. No cambia resultados
+  pin_memory: true
+
+model:
+  arch: "unet3d"
+  in_channels: 7
+  out_channels: 1
+  base_features: 16
+  depth: 4
+  dropout: 0.0
+  grad_checkpointing: true   # necesario: sin ckpt OOM incluso en (176,256) con Z=239
+
+loss:
+  name: "masked_mae_body"    # MAE puro dentro del body (Ch2). DVH-loss queda para Fase 4.
+
+optimizer:
+  name: "adamw"
+  lr: 1.0e-4
+  weight_decay: 1.0e-5
+
+scheduler:
+  name: "cosine"
+  max_epochs: 189            # horizonte COMPLETO, independiente de trainer.max_epochs (CHARTER §5)
+
+training:
+  max_epochs: 189
+  precision: "16-mixed"
+  gradient_clip_val: 1.0
+  early_stopping_patience: 28
+  monitor_metric: "val/mae"
+  monitor_mode: "min"
+
+epoch_scale:
+  n_train_ref: 265
+  n_train: 280
+  ref_max_epochs: 200
+  ref_patience: 30
+  factor: 0.946429

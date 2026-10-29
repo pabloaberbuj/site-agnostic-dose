@@ -4,11 +4,35 @@
 > Refleja siempre "qué es verdad ahora", no la traza histórica. El *por qué cambió* (p.ej. por qué
 > v2b reemplazó a v1/v2) va al append-only de Tier 3, no acá.
 >
-> Última actualización: 2026-10-24 (Fase 2: A1 cerrado, A2/A3 diferidos, A4 en curso — ver sección A-eje)
+> Última actualización: 2026-10-29 (Fase 2 cerrada — ver `fase2_cerrada.md`; Fase 3 / eje B en arranque — ver sección
+> «Fase 3 / eje B» abajo. Las secciones de Fase 2 que siguen quedan como referencia hasta reescribir este doc al cierre de B).
 
 ---
 
-## Estado actual
+## Fase 3 / eje B — estado (2026-10-29)
+
+**Representación fija = A4** (goals uniformes fill 0 + PSDM de PTV_High, 7 canales). Eje B: U-Net 2D → vanilla-3D → (parches/MedNeXt solo si hace falta).
+
+- **Contenedor in-plane nuevo: (176, 256) con crop-to-BODY** (2D y 3D por igual). Medido sobre los 432 del split: bbox del BODY máx **163×248**
+  (grilla completa hasta 242×248; Z máx train 239 / val 214 / test 214). Con 256² vanilla-3D da OOM aun con gradient checkpointing; con
+  (176,256) + ckpt entra (smoke sintético Z=239, `scripts/smoke_b1_vram.py`): pico asignado 8.17 GiB; con `PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:256`
+  reserva ~8.6 GiB (sin él ~10.4). Con tope de 9 GiB y sin el ajuste OOMea.
+- **Código:** `Frame` en `src/datamodules/a0_datamodule.py` (crop centrado al bbox del BODY + pad rectangular, invertible con `Frame.undo`; `pad_hw` int
+  sigue siendo el camino legacy, bit-exacto). Config: `data.container: {hw: [176,256], crop_body: true}`. `eval_a0.py` deshace pad y crop antes del DVH,
+  verifica que ninguna estructura salga del box y escribe `crop_offsets.csv`. `train_a0.py` ganó `--resume` y `--report-vram`.
+- **Verificación del crop (`scripts/smoke_container.py`, 432 pacientes): 0 fallas** — estructuras dentro del box, ida y vuelta exacta de dosis y canales, DVH de ida y vuelta idéntico.
+  Probes con el ckpt viejo de A4 (epoch=105, val): (1) el camino legacy con el código nuevo reproduce el A4 viejo exacto; (2) con crop, el desplazamiento óptimo
+  pred-vs-dosis es (0,0) con corr ≈0.98 en 9 pacientes → **no hay bug de offsets**; (3) el modelo viejo **no es invariante al marco**: solo más padding (288², sin crop) mueve
+  OAR/PTV hasta ~1 pp y con crop hasta −10 pp en PTV alta de Pelvis (la escala predicha cambia hasta ~12 %; el SSIM casi no se mueve). Por eso la prueba real es reentrenar.
+- **Corrida programada** (`scripts/run_b_chain.sh`, tarea `sa_b_chain`, desacoplada, reanudable con `--resume` y reintentos): canario (1 época de vanilla-3D sobre la cohorte real,
+  mide VRAM; sin reintento, un OOM acá PARA y reabre parches) → A4-2D en el contenedor (`exp_a4_003_unet2d_psdm_c176x256`) → guardrail (`scripts/guardrail_a4_container.py`:
+  OAR-media / PTV-alta vs A4-2D viejo, falla si |Δ|>1 pp; criterio fijado antes de correr, sin piso de ruido) → vanilla-3D (`exp_b1_001_unet3d_psdm`, 189/28, ckpt).
+  `num_workers: 1` (la PC tiene ~6.5 GB de RAM libre por la VM Hyper-V). **Resultados: pendientes** (se escriben acá al leerlos).
+- **Heads-up:** el contenedor alcanza para vanilla; probablemente NO para MedNeXt-k5. Parches se reabren ahí.
+
+---
+
+## Estado actual (histórico de Fase 2)
 
 - **Fase activa:** 2 — primer site-agnostic (A-eje de input, SOLO VMAT). Plan A0–A6 en CHARTER §4
   y `ARRANQUE_fase2.md`.
