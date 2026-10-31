@@ -75,3 +75,16 @@ templa ni existe en inferencia. Por qué se difirió: resultado predeterminado (
 análisis estático > corrida confirmatoria). Reabre: fase IMRT/multi-técnica, donde el beam plate distingue
 arco vs 7-campos (geometrías muy distintas). Nota: aun ahí, sin forma de campo templada queda un piso de
 mismatch real-vs-templado.
+
+### Fase 3 / eje B
+
+**SSIM enmascarado por BODY (des-diluir el aire).** Qué: el SSIM se computa sobre el frame completo, que
+incluye el aire (pred≈0, real≈0) matcheando trivialmente e inflando el índice. Verificado en el val de
+exp_a4_003: ~47% del frame es aire en CyC (59–61% en pelvis/próstata) y, dentro de cada sitio,
+rho(SSIM, fracción-aire) = +0.28 (CyC) / +0.47 (Pelvis) / +0.68 (Próstata). Alternativa: SSIM solo dentro
+de la máscara BODY → frame-invariante y centrado en la estructura de dosis. Por qué se difirió: el delta
+2D→3D cancela el aire en gran medida (mismo frame, ambos modelos predicen aire≈0), así que la comparación
+de eje B es robusta sin enmascarar; y el instrumento primario de coherencia cráneo-caudal para CyC es d2,
+no el SSIM (secundario, §2). Enmascarar ahora no cambia ninguna conclusión. Reabre: que el delta de SSIM
+en CyC (3D−2D) caiga en zona gris Y d2 quede ambiguo. Ahí, recomputar SSIM enmascarado por BODY sobre las
+predicciones existentes (barato, no entrena) para ver si el efecto estaba tapado por la dilución.

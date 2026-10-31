@@ -17,14 +17,21 @@ export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-max_split_size_mb:256
 mkdir -p logs
 echo "[chain] inicio $(date '+%F %T')  PYTORCH_CUDA_ALLOC_CONF=$PYTORCH_CUDA_ALLOC_CONF"
 
-train_once () { $PY scripts/train_a0.py --config "$1" --resume 2>&1 | tr '\r' '\n' >> "$2"; return "${PIPESTATUS[0]}"; }
+# workers: 2 (medido: 3D 0.31 it/s con 0, 0.54 con 1, 0.66 con 2). Si el watchdog de RAM corta (exit 4, p.ej. vuelve la VM), el reintento baja a 0.
+TRAIN_W="${TRAIN_W:-2}"
+train_once () {
+  $PY scripts/train_a0.py --config "$1" --resume --min-free-gib 1.0 --cap-gib 11.0 --workers "$TRAIN_W" 2>&1 | tr '\r' '\n' >> "$2"
+  local rc=${PIPESTATUS[0]}
+  if [ "$rc" -eq 4 ] && [ "$TRAIN_W" -gt 0 ]; then TRAIN_W=0; echo "[workers] corte por RAM: los reintentos siguen con 0 workers"; fi
+  return "$rc"
+}
 eval_once ()  { $PY scripts/eval_a0.py net --config "$1" --ckpt "$2" --split val --out-dir "$3" > "$4" 2>&1; }
 
 run_exp () {   # $1 = nombre del experimento (configs/<name>.yaml)
   local name=$1 cfg="configs/$1.yaml" log="logs/$1_train.log"
   [ -f "logs/${name}.done" ] && { echo "[${name}] ya completo, salteo"; return 0; }
   wait_gpu_free || return 1
-  retry_cmd 6 train_once "$cfg" "$log" || { echo "[${name}] train no terminó"; return 1; }
+  retry_cmd 30 train_once "$cfg" "$log" || { echo "[${name}] train no terminó"; return 1; }
   local ckpt; ckpt=$(grep -a '^best:' "$log" | tail -1 | sed -E 's/^best: (.*\.ckpt) .*/\1/')
   echo "[${name}] best ckpt: ${ckpt}"
   [ -n "$ckpt" ] || { echo "[${name}] sin best ckpt"; return 1; }
@@ -36,9 +43,10 @@ run_exp () {   # $1 = nombre del experimento (configs/<name>.yaml)
 if [ ! -f logs/canary_b1_1ep.done ]; then
   wait_gpu_free || exit 1
   rm -rf checkpoints/exp_b1_canary_1ep results/exp_b1_canary_1ep
-  $PY scripts/train_a0.py --config configs/_canary_b1_1ep.yaml --max-epochs 1 --report-vram 2>&1 | tr '\r' '\n' > logs/canary_b1_1ep.log
+  $PY scripts/train_a0.py --config configs/_canary_b1_1ep.yaml --max-epochs 1 --report-vram --min-free-gib 1.0 --cap-gib 11.0 2>&1 | tr '\r' '\n' > logs/canary_b1_1ep.log
   rc=${PIPESTATUS[0]}
-  grep -a "\[vram\]" logs/canary_b1_1ep.log
+  grep -a "\[vram\]\|ABORT-RAM" logs/canary_b1_1ep.log
+  if [ "$rc" -eq 4 ]; then echo "CANARIO ABORTADO POR RAM del host (exit 4), NO es un OOM de GPU: no se reabren parches. Ver logs/canary_b1_1ep.log"; exit 4; fi
   if [ "$rc" -ne 0 ] || ! grep -aq "\[vram\] epoch=0 tras val" logs/canary_b1_1ep.log; then
     echo "CANARIO FALLÓ (exit ${rc}): vanilla-3D no sobrevive 1 época en (176,256)+ckpt -> PARAR, se reabren parches. No se lanza nada más."
     tail -5 logs/canary_b1_1ep.log; exit 3
@@ -46,6 +54,7 @@ if [ ! -f logs/canary_b1_1ep.done ]; then
   date > logs/canary_b1_1ep.done
   echo "[canario] OK: sobrevivió 1 época completa"
 fi
+[ "${CANARY_ONLY:-0}" = "1" ] && { echo "[chain] CANARY_ONLY: fin tras el canario"; exit 0; }
 
 # --- 2-3. A4-2D en contenedor nuevo + guardrail ---------------------------------------------------------------
 run_exp exp_a4_003_unet2d_psdm_c176x256 || exit 1

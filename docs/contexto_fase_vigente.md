@@ -28,6 +28,17 @@
   mide VRAM; sin reintento, un OOM acá PARA y reabre parches) → A4-2D en el contenedor (`exp_a4_003_unet2d_psdm_c176x256`) → guardrail (`scripts/guardrail_a4_container.py`:
   OAR-media / PTV-alta vs A4-2D viejo, falla si |Δ|>1 pp; criterio fijado antes de correr, sin piso de ruido) → vanilla-3D (`exp_b1_001_unet3d_psdm`, 189/28, ckpt).
   `num_workers: 1` (la PC tiene ~6.5 GB de RAM libre por la VM Hyper-V). **Resultados: pendientes** (se escriben acá al leerlos).
+- **Actualización 2026-10-31 (resultados medidos):**
+  - **Cuelgues de la PC (3):** causa medida = sin tope de VRAM el driver (Windows/WDDM) derrama VRAM a RAM del host. Con `--cap-gib 11` el mismo entrenamiento corre sin cuelgues. Protecciones en
+    `train_a0.py`: `--cap-gib`, `--min-free-gib` (watchdog `scripts/_ramguard.py`, aborta con exit 4), `--workers`, `--bench-steps`; `_lib_run.sh`: espera de RAM libre antes de reanudar.
+  - **Canario real:** 1 época de vanilla-3D sobrevivió en (176,256)+ckpt: VRAM pico asignada 8.19 GiB / reservada 11.00 GiB (tope), RAM libre mín 2.74 GiB, val/mae 13.5 tras 1 época.
+  - **Z grande no es la causa:** sonda con pacientes reales de train (Z=110…239): RSS 1.6–1.7 GiB constante, sin OOM.
+  - **A4-2D en el contenedor (`exp_a4_003_unet2d_psdm_c176x256`):** mejor ckpt época 113, val/mae 1.936. **Guardrail OK** (viejo−nuevo, pp; todos |Δ|<1.0 y con IC95 que incluye 0):
+    CyC OAR +0.11 / PTV −0.49; Pelvis OAR −0.14 / PTV −0.31; Próstata OAR +0.30 / PTV +0.19. Umbral de 1 pp elegido a priori, sin piso de ruido seed-a-seed.
+    SSIM (secundaria, no del guardrail) bajó en CyC (0.571→0.521) y Próstata (0.856→0.820), subió en Pelvis (0.815→0.823); sin investigar (ver cabos sueltos: SSIM enmascarado por BODY).
+  - **Benchmark de workers de vanilla-3D (80 pasos reales):** 0 → 0.31 it/s, 1 → 0.54, 2 → 0.66, 3 → 0.66 (sin ganancia). Se corre con 2 workers (~7 min/época de train + ~1 min de val).
+    La corrida real corre oculta (`wscript`, sin ventana: una ventana de consola cerrada mató la corrida el 30-oct, exit 0xC000013A).
+  - **Vanilla-3D `exp_b1_001_unet3d_psdm`:** lanzado el 2026-10-31 ~15:39 con 2 workers (si el watchdog corta por RAM, los reintentos bajan a 0). Resultados: pendientes.
 - **Heads-up:** el contenedor alcanza para vanilla; probablemente NO para MedNeXt-k5. Parches se reabren ahí.
 
 ---

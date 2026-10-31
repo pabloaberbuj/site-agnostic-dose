@@ -22,8 +22,8 @@ data:
   fill_sin_goal: 0   # fijo (ganador A1a)
   ptv_ref: union             # EDT sobre unión de PTVs; fallback 'high' si CyC sale raro
   batch_size: 1
-  num_workers: 1             # 1 (no 2): la PC tiene ~6.5 GB de RAM libre (VM Hyper-V); cada worker pica ~1.4-2 GB. No cambia resultados
-  pin_memory: true
+  num_workers: 0             # 0 workers + pin_memory false: lo probado en el canario (RAM libre mín 2.74 GiB con tope VRAM 11 GiB)
+  pin_memory: false
 
 model:
   arch: "unet3d"

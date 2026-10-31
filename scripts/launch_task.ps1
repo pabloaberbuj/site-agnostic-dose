@@ -10,7 +10,14 @@ param(
 )
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $bash = 'C:\Program Files\Git\usr\bin\bash.exe'
-$action = New-ScheduledTaskAction -Execute $bash -Argument "-lc `"cd '$($repo -replace '\\','/')' && $Cmd`"" -WorkingDirectory $repo
+# Sin ventana de consola: bash.exe directo abre un cmd que cualquiera puede cerrar (exit 0xC000013A) y mata el entrenamiento.
+# wscript con WindowStyle 0 lo corre oculto; no hay ventana que cerrar.
+$bashCmd = "`"$bash`" -lc `"cd '$($repo -replace '\\','/')' && $Cmd`""
+$vbs = Join-Path $PSScriptRoot "_task_$Name.vbs"
+$q = [string][char]34
+$vbsCmd = $bashCmd.Replace($q, $q + $q)
+Set-Content -Path $vbs -Encoding ASCII -Value @('Set sh = CreateObject("WScript.Shell")', ('sh.Run ' + $q + $vbsCmd + $q + ', 0, False'))
+$action = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument "//B //Nologo `"$vbs`"" -WorkingDirectory $repo
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable `
     -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew
 $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited

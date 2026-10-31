@@ -1,13 +1,13 @@
-# ============================================================
-# Fase 3 / eje B — refresco de la vara 2D en el contenedor nuevo. = exp_a4_001_unet2d_psdm (A4, 7 canales, U-Net 2D) con UN
+﻿# ============================================================
+# Fase 3 / eje B â€” refresco de la vara 2D en el contenedor nuevo. = exp_a4_001_unet2d_psdm (A4, 7 canales, U-Net 2D) con UN
 # solo cambio: marco in-plane. Antes: pad a 256x256 de la grilla completa. Ahora: recorte centrado al bbox del BODY por
-# paciente + pad al contenedor fijo global (176,256) (bbox BODY máx 163x248 sobre los 432 del split; múltiplo de 16).
+# paciente + pad al contenedor fijo global (176,256) (bbox BODY mÃ¡x 163x248 sobre los 432 del split; mÃºltiplo de 16).
 # Guardrail: OAR-media y PTV-alta (frame-independientes) deben reproducir A4-2D dentro de ruido; solo SSIM/MAE-body pueden moverse.
 # ============================================================
 
 experiment:
   name: exp_a4_003_unet2d_psdm_c176x256
-  description: "A4-2D en contenedor (176,256) con crop-to-BODY; todo lo demás congelado e idéntico a exp_a4_001"
+  description: "A4-2D en contenedor (176,256) con crop-to-BODY; todo lo demÃ¡s congelado e idÃ©ntico a exp_a4_001"
   seed: 42
 
 data:
@@ -20,9 +20,9 @@ data:
   datamodule: a4             # A4DataModule: A1 (6 canales) + Ch6 PSDM(PTV_High)
   goal_mode: uniform
   fill_sin_goal: 0   # fijo (ganador A1a)
-  ptv_ref: union             # EDT sobre unión de PTVs; fallback 'high' si CyC sale raro
+  ptv_ref: union             # EDT sobre uniÃ³n de PTVs; fallback 'high' si CyC sale raro
   batch_size: 1
-  num_workers: 1             # 1 (no 2): la PC tiene ~6.5 GB de RAM libre (VM Hyper-V); cada worker pica ~1.4-2 GB. No cambia resultados
+  num_workers: 2             # 2 como en la Fase 2 (A4-2D viejo): con la VM apagada hay ~20 GB libres. No cambia resultados
   pin_memory: true
 
 model:
@@ -33,7 +33,7 @@ model:
   depth: 4
   upsample_mode: "bilinear"
   dropout: 0.0
-  slice_chunk: 32            # cortes por chunk con gradient checkpointing (numéricamente idéntico, menos VRAM)
+  slice_chunk: 32            # cortes por chunk con gradient checkpointing (numÃ©ricamente idÃ©ntico, menos VRAM)
 
 loss:
   name: "masked_mae_body"    # MAE puro dentro del body (Ch2). DVH-loss queda para Fase 4.
@@ -45,7 +45,7 @@ optimizer:
 
 scheduler:
   name: "cosine"
-  max_epochs: 189            # horizonte COMPLETO, independiente de trainer.max_epochs (CHARTER §5)
+  max_epochs: 189            # horizonte COMPLETO, independiente de trainer.max_epochs (CHARTER Â§5)
 
 training:
   max_epochs: 189

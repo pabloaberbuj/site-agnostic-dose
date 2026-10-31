@@ -22,6 +22,20 @@ wait_gpu_free () {
   done
 }
 
+# RAM libre del host en MiB (Windows); espera a que haya >= RAM_FREE_MIN_MIB antes de reanudar tras un aborto por RAM (exit 4)
+RAM_FREE_MIN_MIB="${RAM_FREE_MIN_MIB:-2500}"
+RAM_WAIT_MIN="${RAM_WAIT_MIN:-180}"
+ram_free_mib () { powershell -NoProfile -Command "[int]((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1024)" 2>/dev/null | tr -d ' \r'; }
+wait_ram_free () {
+  local waited=0 f
+  while true; do
+    f=$(ram_free_mib)
+    if [ -n "$f" ] && [ "$f" -ge "$RAM_FREE_MIN_MIB" ]; then echo "[ram] libre ${f} MiB (mín ${RAM_FREE_MIN_MIB}) $(date '+%F %T')"; return 0; fi
+    if [ "$waited" -ge "$RAM_WAIT_MIN" ]; then echo "[ram] NO se liberó en ${RAM_WAIT_MIN} min (${f:-?} MiB): abortando $(date '+%F %T')"; return 1; fi
+    echo "[ram] baja (${f:-?} MiB libres), espero 1 min..."; sleep 60; waited=$((waited + 1))
+  done
+}
+
 # retry_cmd N cmd args...: stdout/stderr van al caller (el caller redirige a su log)
 retry_cmd () {
   local max=$1; shift
@@ -32,6 +46,7 @@ retry_cmd () {
     echo "[retry] intento ${i}/${max} falló (exit ${rc}) $(date '+%F %T'); espero 90 s y reanudo"
     sleep 90
     wait_gpu_free || return 1
+    wait_ram_free || return 1
   done
   echo "[retry] agotados ${max} intentos"; return 1
 }

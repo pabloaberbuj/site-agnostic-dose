@@ -60,9 +60,28 @@ def main():
                     help='imprime el pico de VRAM asignada/reservada al final de cada época (canario de headroom)')
     ap.add_argument('--resume', action='store_true',
                     help='reanuda desde checkpoints/<exp>/last.ckpt si existe (corridas largas desacopladas)')
+    ap.add_argument('--min-free-gib', type=float, default=None,
+                    help='aborta (exit 4) si la RAM libre del host baja de este mínimo (evita cuelgues del equipo)')
+    ap.add_argument('--cap-gib', type=float, default=None,
+                    help='tope de VRAM del proceso (GiB): en Windows (WDDM) sin tope el driver derrama VRAM a RAM del host y cuelga el equipo; con tope da OOM limpio')
+    ap.add_argument('--workers', type=int, default=None,
+                    help='sobrescribe data.num_workers (pin_memory se activa solo si > 0)')
+    ap.add_argument('--bench-steps', type=int, default=None,
+                    help='benchmark: N pasos de train, sin val/checkpoints/record; imprime it/s y RAM libre cada 10 pasos')
     args = ap.parse_args()
+    if args.cap_gib:
+        torch.cuda.set_per_process_memory_fraction(min(1.0, args.cap_gib * 2 ** 30 / torch.cuda.get_device_properties(0).total_memory))
+        print(f'[cap] VRAM del proceso limitada a {args.cap_gib} GiB', flush=True)
+    if args.min_free_gib:
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        import _ramguard
+        _ramguard.start(args.min_free_gib)
 
     cfg = OmegaConf.load(args.config)
+    if args.workers is not None:
+        cfg.data.num_workers = args.workers
+        cfg.data.pin_memory = args.workers > 0
+        print(f'[workers] num_workers={args.workers} pin_memory={args.workers > 0}', flush=True)
     assert cfg.scheduler.max_epochs == cfg.training.max_epochs, 'horizonte del scheduler != trainer'
     es = cfg.epoch_scale
     assert round(es.ref_max_epochs * es.n_train_ref / es.n_train) == cfg.scheduler.max_epochs, 'factor/horizonte inconsistentes'
@@ -74,6 +93,29 @@ def main():
     dm.setup()
     assert len(dm.train_ds) == es.n_train, f'N_train real {len(dm.train_ds)} != {es.n_train} del factor'
     model = A0Module(cfg)
+
+    if args.bench_steps:
+        import time
+
+        class BenchTimer(pl.Callback):
+            def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx):
+                if batch_idx == 0:
+                    self.t0, self.n0 = None, 0
+                if batch_idx == 4:   # descarta el calentamiento (cudnn, workers)
+                    self.t0, self.n0 = time.time(), batch_idx
+                if self.t0 is not None and (batch_idx + 1) % 10 == 0:
+                    import _ramguard
+                    dt = time.time() - self.t0
+                    print(f'[bench] paso {batch_idx + 1}: {(batch_idx - self.n0) / dt:.2f} it/s (desde el paso 5), Z={batch["input"].shape[1]}, '
+                          f'RAM libre {_ramguard.free_gib():.2f} GiB, VRAM pico asig. {torch.cuda.max_memory_allocated() / 2**30:.2f} GiB',
+                          flush=True)
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        trainer = pl.Trainer(max_epochs=1, precision=cfg.training.precision, gradient_clip_val=cfg.training.gradient_clip_val,
+                             logger=False, enable_checkpointing=False, callbacks=[BenchTimer()], limit_train_batches=args.bench_steps,
+                             limit_val_batches=0, num_sanity_val_steps=0, enable_progress_bar=False, deterministic=False)
+        trainer.fit(model, datamodule=dm)
+        print('[bench] fin', flush=True)
+        return
 
     name = cfg.experiment.name
     ckpt_dir = ROOT / 'checkpoints' / name
@@ -115,6 +157,10 @@ def main():
         deterministic=False, fast_dev_run=args.fast_dev_run, log_every_n_steps=10)
     last = ckpt_dir / 'last.ckpt'
     resume = str(last) if args.resume and last.exists() else None
+    if resume:
+        # torch>=2.6: torch.load usa weights_only=True y rechaza el DictConfig guardado en el ckpt. Es nuestro propio last.ckpt.
+        _torch_load = torch.load
+        torch.load = lambda *a, **k: _torch_load(*a, **{**k, 'weights_only': False})
     print('[resume]', resume or 'desde cero')
     trainer.fit(model, datamodule=dm, ckpt_path=resume)
     print('best:', trainer.checkpoint_callback.best_model_path, trainer.checkpoint_callback.best_model_score)
