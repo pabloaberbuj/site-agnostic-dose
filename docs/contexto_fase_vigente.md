@@ -39,7 +39,7 @@
   - **Benchmark de workers de vanilla-3D (80 pasos reales):** 0 → 0.31 it/s, 1 → 0.54, 2 → 0.66, 3 → 0.66 (sin ganancia). Se corre con 2 workers (~7 min/época de train + ~1 min de val).
     La corrida real corre oculta (`wscript`, sin ventana: una ventana de consola cerrada mató la corrida el 30-oct, exit 0xC000013A).
   - **Vanilla-3D `exp_b1_001_unet3d_psdm` (val):** terminó el 2026-11-01 15:47, sin abortos. Early stopping en época 104; mejor ckpt época 76, val/mae 1.789 (2D: 1.936).
-    Comparación pareada por paciente (3D vs A4-2D contenedor, pp, >0 = 3D mejor, IC95; `logs/comparacion_3d_vs_2d.log`):
+    Comparación pareada por paciente (3D vs A4-2D contenedor, pp, >0 = 3D mejor, IC95; salida de `guardrail_a4_container.py --old-dir <2D> --new-dir <3D> --tol 100`):
     CyC OAR-media −0.07 [−0.26,+0.14] / PTV-alta +0.32 [−0.77,+1.65]; Pelvis OAR +0.43 [−0.13,+1.10] / PTV **+1.75 [+0.31,+3.53]**; Próstata OAR −0.43 [−0.94,+0.06] / PTV **−1.63 [−2.80,−0.55]**.
     Es decir: 3D mejor en PTV-alta de Pelvis, peor en PTV-alta de Próstata, empate en CyC. El MAE-body mejora (CyC 2.32→1.72) pero no mueve el DVH de forma consistente.
     SSIM sube en los tres sitios (CyC 0.521→0.699, Pelvis 0.823→0.844, Próstata 0.820→0.831).
