@@ -88,3 +88,21 @@ de eje B es robusta sin enmascarar; y el instrumento primario de coherencia crá
 no el SSIM (secundario, §2). Enmascarar ahora no cambia ninguna conclusión. Reabre: que el delta de SSIM
 en CyC (3D−2D) caiga en zona gris Y d2 quede ambiguo. Ahí, recomputar SSIM enmascarado por BODY sobre las
 predicciones existentes (barato, no entrena) para ver si el efecto estaba tapado por la dilución.
+
+**Criterio de selección de checkpoint: val/mae enmascarado por BODY vs. métricas que sí deciden.** Qué: el
+mejor checkpoint y el early stopping se eligen por `val/mae` (la misma pérdida de entrenamiento, medida en
+val), no por las métricas que deciden las comparaciones (DVH por sitio con IC95: OAR-media / PTV-alta; d2 en
+CyC). El MAE sale gratis al cierre de cada época; el DVH exige inferencia, des-padeo, renormalización y
+histogramas sobre los 65 pacientes de val, varios minutos por época. No encontré documento que justifique la
+elección: probablemente heredada del 2D de la Fase 2 (suposición). Limitaciones: promedia sobre todo el
+cuerpo, donde PTV/OAR son una fracción chica; evidencia en el guardrail: A4-2D en el contenedor tenía un
+val/mae ~10% peor que el viejo en las mismas épocas (3.21 vs 2.89 en la época 52) y el DVH quedó dentro de
+±0.5 pp; diferencias de ~0.1 de MAE entre épocas (p.ej. 1.87 vs 1.95 en el 3D) pueden ser ruido para el
+DVH, y el early stopping elige entre ellas. Además se selecciona sobre val, que también entra en la
+comparación 2D vs. 3D: sesgo optimista leve y parejo para ambos modelos (test reservado). Por qué se
+difirió: cambiar el criterio a mitad de la comparación rompería la regla común 2D/3D, y hoy no cambia
+ninguna conclusión. Reabre: que el 3D−2D en DVH caiga en zona gris, o que el mejor checkpoint por MAE sea
+sospechoso (curva oscilante, diferencias dentro de ruido). Primer paso, barato y sin entrenar: evaluar DVH
+sobre los 3 mejores checkpoints que ya guarda Lightning (análisis de sensibilidad); si dan lo mismo, la
+elección por MAE no importa. A futuro: monitor secundario con DVH sobre un subconjunto de val cada ~10
+épocas, o criterio combinado MAE + OAR-media + PTV-alta.
