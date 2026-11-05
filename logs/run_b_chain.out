@@ -1,0 +1,77 @@
+[chain] inicio 2026-10-29 22:44:37  PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:256
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-29 22:44:37
+[retry] intento 1/6 falló (exit 4) 2026-10-29 22:46:59; espero 90 s y reanudo
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-29 22:48:29
+[ram] libre 6190 MiB (mín 2500) 2026-10-29 22:48:30
+[retry] intento 2/6 falló (exit 4) 2026-10-29 22:51:34; espero 90 s y reanudo
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-29 22:53:05
+[ram] libre 6331 MiB (mín 2500) 2026-10-29 22:53:05
+[chain] inicio 2026-10-29 23:02:23  PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:256
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-29 23:02:23
+[retry] intento 1/30 falló (exit 1) 2026-10-29 23:02:46; espero 90 s y reanudo
+[chain] inicio 2026-10-29 23:04:00  PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:256
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-29 23:04:00
+[retry] intento 1/30 falló (exit 4) 2026-10-29 23:06:44; espero 90 s y reanudo
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-29 23:08:15
+[ram] libre 5987 MiB (mín 2500) 2026-10-29 23:08:15
+[chain] inicio 2026-10-31 07:17:47  PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:256
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-31 07:17:47
+[chain] inicio 2026-10-31 07:21:15  PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:256
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-31 07:21:15
+[chain] inicio 2026-10-31 07:29:20  PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:256
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-31 07:29:21
+[exp_a4_003_unet2d_psdm_c176x256] best ckpt: C:\Pablo\Site Agnostic\repo\site-agnostic-dose\checkpoints\exp_a4_003_unet2d_psdm_c176x256\epoch=113.ckpt
+guardrail contenedor: viejo=results/exp_a4_001_unet2d_psdm nuevo=results/exp_a4_003_unet2d_psdm_c176x256 tol=1.0 pp (old - new, >0 = nuevo mejor)
+  CyC       OAR_all  media_40_80  +0.11 [-0.02,+0.22] n=23
+  CyC       PTV_all  alta_80_110  -0.49 [-1.49,+0.43] n=23
+  Pelvis    OAR_all  media_40_80  -0.14 [-0.51,+0.19] n=21
+  Pelvis    PTV_all  alta_80_110  -0.31 [-1.38,+0.81] n=21
+  Prostata  OAR_all  media_40_80  +0.30 [-0.09,+0.65] n=21
+  Prostata  PTV_all  alta_80_110  +0.19 [-0.23,+0.68] n=21
+  secundarias exp_a4_001_unet2d_psdm: CyC SSIM 0.571 MAEbody 2.37 | Pelvis SSIM 0.815 MAEbody 2.49 | Prostata SSIM 0.856 MAEbody 0.92
+  secundarias exp_a4_003_unet2d_psdm_c176x256: CyC SSIM 0.521 MAEbody 2.32 | Pelvis SSIM 0.823 MAEbody 2.53 | Prostata SSIM 0.820 MAEbody 0.92
+guardrail OK
+[exp_b1_001_unet3d_psdm] ya completo, salteo
+[chain] completo 2026-10-31 15:19:49
+[chain] inicio 2026-10-31 15:31:42  PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:256
+[exp_a4_003_unet2d_psdm_c176x256] ya completo, salteo
+guardrail contenedor: viejo=results/exp_a4_001_unet2d_psdm nuevo=results/exp_a4_003_unet2d_psdm_c176x256 tol=1.0 pp (old - new, >0 = nuevo mejor)
+  CyC       OAR_all  media_40_80  +0.11 [-0.02,+0.22] n=23
+  CyC       PTV_all  alta_80_110  -0.49 [-1.49,+0.43] n=23
+  Pelvis    OAR_all  media_40_80  -0.14 [-0.51,+0.19] n=21
+  Pelvis    PTV_all  alta_80_110  -0.31 [-1.38,+0.81] n=21
+  Prostata  OAR_all  media_40_80  +0.30 [-0.09,+0.65] n=21
+  Prostata  PTV_all  alta_80_110  +0.19 [-0.23,+0.68] n=21
+  secundarias exp_a4_001_unet2d_psdm: CyC SSIM 0.571 MAEbody 2.37 | Pelvis SSIM 0.815 MAEbody 2.49 | Prostata SSIM 0.856 MAEbody 0.92
+  secundarias exp_a4_003_unet2d_psdm_c176x256: CyC SSIM 0.521 MAEbody 2.32 | Pelvis SSIM 0.823 MAEbody 2.53 | Prostata SSIM 0.820 MAEbody 0.92
+guardrail OK
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-31 15:31:44
+[chain] inicio 2026-10-31 15:38:01  PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:256
+[exp_a4_003_unet2d_psdm_c176x256] ya completo, salteo
+guardrail contenedor: viejo=results/exp_a4_001_unet2d_psdm nuevo=results/exp_a4_003_unet2d_psdm_c176x256 tol=1.0 pp (old - new, >0 = nuevo mejor)
+  CyC       OAR_all  media_40_80  +0.11 [-0.02,+0.22] n=23
+  CyC       PTV_all  alta_80_110  -0.49 [-1.49,+0.43] n=23
+  Pelvis    OAR_all  media_40_80  -0.14 [-0.51,+0.19] n=21
+  Pelvis    PTV_all  alta_80_110  -0.31 [-1.38,+0.81] n=21
+  Prostata  OAR_all  media_40_80  +0.30 [-0.09,+0.65] n=21
+  Prostata  PTV_all  alta_80_110  +0.19 [-0.23,+0.68] n=21
+  secundarias exp_a4_001_unet2d_psdm: CyC SSIM 0.571 MAEbody 2.37 | Pelvis SSIM 0.815 MAEbody 2.49 | Prostata SSIM 0.856 MAEbody 0.92
+  secundarias exp_a4_003_unet2d_psdm_c176x256: CyC SSIM 0.521 MAEbody 2.32 | Pelvis SSIM 0.823 MAEbody 2.53 | Prostata SSIM 0.820 MAEbody 0.92
+guardrail OK
+[gpu] ocupada (11337 MiB), espero 1 min...
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-31 15:39:02
+[chain] inicio 2026-11-01 08:32:18  PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:256
+[exp_a4_003_unet2d_psdm_c176x256] ya completo, salteo
+guardrail contenedor: viejo=results/exp_a4_001_unet2d_psdm nuevo=results/exp_a4_003_unet2d_psdm_c176x256 tol=1.0 pp (old - new, >0 = nuevo mejor)
+  CyC       OAR_all  media_40_80  +0.11 [-0.02,+0.22] n=23
+  CyC       PTV_all  alta_80_110  -0.49 [-1.49,+0.43] n=23
+  Pelvis    OAR_all  media_40_80  -0.14 [-0.51,+0.19] n=21
+  Pelvis    PTV_all  alta_80_110  -0.31 [-1.38,+0.81] n=21
+  Prostata  OAR_all  media_40_80  +0.30 [-0.09,+0.65] n=21
+  Prostata  PTV_all  alta_80_110  +0.19 [-0.23,+0.68] n=21
+  secundarias exp_a4_001_unet2d_psdm: CyC SSIM 0.571 MAEbody 2.37 | Pelvis SSIM 0.815 MAEbody 2.49 | Prostata SSIM 0.856 MAEbody 0.92
+  secundarias exp_a4_003_unet2d_psdm_c176x256: CyC SSIM 0.521 MAEbody 2.32 | Pelvis SSIM 0.823 MAEbody 2.53 | Prostata SSIM 0.820 MAEbody 0.92
+guardrail OK
+[gpu] libre (0 MiB en uso, tope 1500) 2026-11-01 08:32:21
+[exp_b1_001_unet3d_psdm] best ckpt: C:\Pablo\Site Agnostic\repo\site-agnostic-dose\checkpoints\exp_b1_001_unet3d_psdm\epoch=076.ckpt
+[chain] completo 2026-11-01 15:47:15

@@ -25,14 +25,18 @@ sys.path.insert(0, str(ROOT))
 
 from src.datamodules.a0_datamodule import frame_from_cfg  # noqa: E402
 from src.eval import dvh  # noqa: E402
+from src.eval import ssim as ssim_mod  # noqa: E402
 
+SEC_COLS = ('mae_body', 'ssim_body', 'ssim_body_dosis5', ssim_mod.COL_FRAME_OBSOLETA)
 DEF_NPZ = ROOT / '../../data/npz_v2b_body'
 DEF_SPLIT = ROOT / 'data/splits/split_v2.json'
 DEF_HARM = ROOT / 'data/harmonization'
 NOTA_SEC = ('dose_score OpenKBP removido del reporte: con possible-dose-mask = body era idéntico al MAE body (no era una '
             'segunda señal). MAE body incluye vóxeles de soporte/inmovilizadores en fracción variable por paciente '
             '(mask_BODY = External de Eclipse): no sobre-interpretar comparaciones entre pacientes/sitios. '
-            'SSIM por corte; MS-SSIM omitido (CyC <160 px).')
+            'SSIM por corte; MS-SSIM omitido (CyC <160 px). '
+            'SSIM: ssim_body y ssim_body_dosis5 (src/eval/ssim.py, vara de coherencia de Fase 3) con pred*BODY; '
+            'ssim_frame_obsoleto = frame completo, OBSOLETO: lo dominan los píxeles fuera del BODY.')
 
 
 def get_ds(split, cfg_data=None):
@@ -64,15 +68,6 @@ def masks_from_npz(npz_path):
         return {k[len('mask_'):]: z[k].astype(bool) for k in z.files if k.startswith('mask_')}
 
 
-def ssim_vol(pred, true, body, data_range=120.0):
-    """SSIM medio por corte (ventana 11) sobre cortes con body; coherencia espacial (secundaria)."""
-    from torchmetrics.functional import structural_similarity_index_measure as ssim
-    sl = np.where(body.reshape(body.shape[0], -1).any(1))[0]
-    p = torch.from_numpy(pred[sl]).unsqueeze(1).float()
-    t = torch.from_numpy(true[sl]).unsqueeze(1).float()
-    return float(ssim(p, t, data_range=data_range).item())
-
-
 def write_outputs(out_dir, df, extra, label):
     out_dir.mkdir(parents=True, exist_ok=True)
     df = dvh.with_groups(df)
@@ -99,7 +94,7 @@ def run_net(a):
     model = A0Module.load_from_checkpoint(a.ckpt, cfg=cfg, strict=True, map_location='cpu', weights_only=False)
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
     model.to(dev).eval()
-    rows, sec, fallas, offsets = [], [], [], []
+    rows, sec, fallas, offsets, fuera_del_body = [], [], [], [], []
     for i, pid in enumerate(ds.ids):
         dose, chans, meta = ds.load_raw(pid)
         Z, H, W = dose.shape
@@ -115,6 +110,11 @@ def run_net(a):
                 raise RuntimeError(f'{pid}: la máscara {role} sale del box de recorte {box}')
         offsets.append({'patient_id': pid, 'site': meta['site'], 'H': H, 'W': W, 'y0': y0, 'y1': y1, 'x0': x0, 'x1': x1})
         body = masks['BODY']
+        fb = {r: int((m & ~body).sum()) for r, m in masks.items() if r != 'BODY' and (m & ~body).any()}
+        if fb:
+            fuera_del_body.append((pid, fb))
+        if not a.no_body_mask:
+            pred = ssim_mod.postproc_body(pred, body)   # post-proceso estándar: pred * BODY (BODY es input, sin leakage)
         mae_body = float(np.abs(pred - dose)[body].mean())
         predn, f = dvh.renorm_pred(pred, masks['PTV_High'])
         r = dvh.patient_rows(pid, meta['site'], masks, dose, dose_pred=predn)
@@ -122,8 +122,11 @@ def run_net(a):
             if not (row['v0_true_ok'] and row['monotona_true_ok']):
                 fallas.append((pid, row['role']))
         rows += r
+        rs = ssim_mod.region_stats(pred, dose, body, dev)
         sec.append({'patient_id': pid, 'site': meta['site'], 'mae_body': mae_body,
-                    'ssim': ssim_vol(pred, dose, body), 'factor_renorm': f})
+                    'ssim_body': rs['body_ssim'], 'ssim_body_dosis5': rs['body_dosis5_ssim'],
+                    ssim_mod.COL_FRAME_OBSOLETA: rs['frame_ssim'],   # OBSOLETA: solo referencia (la domina lo de fuera del BODY)
+                    'factor_renorm': f})
         if (i + 1) % 10 == 0:
             print(f'  {i + 1}/{len(ds.ids)}')
     out = ROOT / a.out_dir
@@ -131,13 +134,15 @@ def run_net(a):
     out.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(offsets).to_csv(out / 'crop_offsets.csv', index=False)
     sec_df.to_csv(out.mkdir(parents=True, exist_ok=True) or out / 'secondary_per_patient.csv', index=False)
-    secondary = {s: {c: dvh.bootstrap_ci(g[c].values) for c in ('mae_body', 'ssim')}
+    secondary = {s: {c: dvh.bootstrap_ci(g[c].values) for c in SEC_COLS}
                  for s, g in sec_df.groupby('site')}
     record = json.loads((ROOT / 'results' / cfg.experiment.name / 'record.json').read_text()) \
         if (ROOT / 'results' / cfg.experiment.name / 'record.json').exists() else dm.experiment_record()
     extra = {'split_evaluado': a.split, 'ckpt': str(a.ckpt), 'sanity_fallas': fallas,
              'secundarias_por_sitio': secondary,
              'nota_secundarias': NOTA_SEC,
+             'post_proceso_pred_por_body': not a.no_body_mask,
+             'estructuras_fuera_del_body': fuera_del_body,   # si no está vacío, pred*BODY podría mover el DVH de esas estructuras
              'record': {k: record[k] for k in ('exp_id', 'harmonization_hash', 'npz_dir', 'splits_file', 'pad_hw', 'epoch_scale') if k in record}}
     write_outputs(out, pd.DataFrame(rows), extra, f'A0 net ({a.split})')
 
@@ -191,7 +196,8 @@ def run_resummary(a):
         if 'secundarias_por_sitio' in sj:
             sec = pd.read_csv(out / 'secondary_per_patient.csv').drop(columns=['dose_score_openkbp'], errors='ignore')
             sec.to_csv(out / 'secondary_per_patient.csv', index=False)
-            sj['secundarias_por_sitio'] = {s: {c: dvh.bootstrap_ci(g[c].values) for c in ('mae_body', 'ssim')}
+            cols = [c for c in ('mae_body', 'ssim', *SEC_COLS) if c in sec.columns]
+            sj['secundarias_por_sitio'] = {s: {c: dvh.bootstrap_ci(g[c].values) for c in dict.fromkeys(cols)}
                                            for s, g in sec.groupby('site')}
             sj['nota_secundarias'] = NOTA_SEC
         sj['nota_ic'] = ('cells con degenerate=true (std entre pacientes = 0) tienen IC colapsado a un punto: la estructura '
@@ -208,6 +214,8 @@ def main():
     n.add_argument('--ckpt', required=True)
     n.add_argument('--split', default='val', choices=['val', 'test'])
     n.add_argument('--out-dir', default='results/exp_a0_001_unet2d')
+    n.add_argument('--no-body-mask', action='store_true',
+                   help='NO aplicar pred*BODY (solo para reproducir/verificar evaluaciones previas)')
     b = sp.add_parser('baseline')
     b.add_argument('--baseline-dir', default='results/baseline_v2b')
     b.add_argument('--split', default='val', choices=['val', 'test'])

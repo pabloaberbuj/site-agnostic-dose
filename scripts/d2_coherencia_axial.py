@@ -40,6 +40,7 @@ sys.path.insert(0, str(ROOT / 'scripts'))
 
 from src.config.harmonization import HarmonizationTable, SITE_FILES  # noqa: E402
 from src.eval import dvh  # noqa: E402
+from src.datamodules.a0_datamodule import CH_BODY  # noqa: E402
 from eval_a0 import get_ds, masks_from_npz  # noqa: E402
 
 MIN_PIXELS_SLICE = 10          # área mínima del OAR en un corte para entrar al perfil
@@ -91,7 +92,9 @@ def predecir(model, ds, pid, dev):
     x = torch.from_numpy(np.ascontiguousarray(ds.pad_channels(chans).transpose(1, 0, 2, 3)))[None].to(dev)
     with torch.no_grad():
         pred = model(x)[0].cpu().numpy()
-    return dose, ds.frame.undo(pred, ds.frame_box(chans), (H, W)), meta
+    pred = ds.frame.undo(pred, ds.frame_box(chans), (H, W))
+    from src.eval.ssim import postproc_body
+    return dose, postproc_body(pred, chans[CH_BODY] > 0), meta   # post-proceso estándar pred*BODY (Ch2 = body, input)
 
 
 def veredicto(p, ratio):

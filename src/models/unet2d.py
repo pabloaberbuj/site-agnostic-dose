@@ -118,4 +118,7 @@ def build_model(cfg) -> nn.Module:
     if arch == "unet3d":
         from src.models.unet3d import build_model_3d
         return build_model_3d(cfg)
+    if arch == "mednext2d":
+        from src.models.mednext2d import build_mednext2d
+        return build_mednext2d(cfg)
     raise NotImplementedError(f"Arch {arch} no implementada todavía")

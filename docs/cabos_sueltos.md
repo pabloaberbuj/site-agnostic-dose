@@ -62,7 +62,7 @@ donde esperaríamos el salto del 3D.
 (SSIM −0.07 parejo en los 3 sitios). Hipótesis: un modelo 2D-MAE copia los bordes filosos de densidad
 (hueso/aire) a la dosis, que es suave aun cruzándolos → textura espuria → SSIM abajo. Por qué se difirió:
 el veredicto (no entra en A) es robusto; la réplica seed no se corrió porque no cambia la acción (§11).
-Reabre: al montar 3D — un modelo con contexto volumétrico podría usar la densidad sin generar esa textura.
+Reabre: si el 3D pasa a arquitectura de operación (en Fase 3 el 3D no mejoró el DVH, ver `fase3_cerrada.md`) — un modelo con contexto volumétrico podría usar la densidad sin generar esa textura.
 Misma familia que el check cráneo-caudal de CyC. Nota menor: para 54/503 pacientes (Brilliance 16, MX
 16-slice, 1 ARIA) se usó la curva Big Bore por falta de la propia; conseguir las curvas si se reabre
 densidad.
@@ -78,7 +78,7 @@ mismatch real-vs-templado.
 
 ### Fase 3 / eje B
 
-**SSIM enmascarado por BODY (des-diluir el aire).** Qué: el SSIM se computa sobre el frame completo, que
+**SSIM enmascarado por BODY (des-diluir el aire). — RESUELTA en Fase 3 (ver `fase3_cerrada.md`; el SSIM de frame completo quedó retirado, vara vigente en `results/ssim_validacion/`).** Entrada original: Qué: el SSIM se computa sobre el frame completo, que
 incluye el aire (pred≈0, real≈0) matcheando trivialmente e inflando el índice. Verificado en el val de
 exp_a4_003: ~47% del frame es aire en CyC (59–61% en pelvis/próstata) y, dentro de cada sitio,
 rho(SSIM, fracción-aire) = +0.28 (CyC) / +0.47 (Pelvis) / +0.68 (Próstata). Alternativa: SSIM solo dentro
@@ -106,3 +106,19 @@ sospechoso (curva oscilante, diferencias dentro de ruido). Primer paso, barato y
 sobre los 3 mejores checkpoints que ya guarda Lightning (análisis de sensibilidad); si dan lo mismo, la
 elección por MAE no importa. A futuro: monitor secundario con DVH sobre un subconjunto de val cada ~10
 épocas, o criterio combinado MAE + OAR-media + PTV-alta.
+
+**Piso de seed en PTV-alta (Fase 3).** Qué es: el 3D da Pelvis +1.75 / Próstata −1.63 en PTV-alta, con IC que excluyen 0, pero con una sola seed. Medir seed 43 del 2D para conocer la varianza entre corridas. Por qué se difirió: sea real o ruido, la decisión es la misma (el 3D no gana en general). Qué lo reabriría: que una comparación de Fase 4 caiga en zona gris, o querer atribuir esos efectos.
+
+**3D como trade-off de coherencia en CyC (Fase 3).** Qué es: el 3D mejora el SSIM dentro del BODY (+0.03/+0.04) y el MAE-body (1.72 vs 2.32) en CyC, con DVH empatado. Por qué se difirió: la prioridad es el DVH, y el 3D es caro y está al límite de memoria. Qué lo reabriría: que la visualización médica (§1, uso 1) pase a ser el objetivo principal, o que una loss de Fase 4 cambie el ranking en DVH.
+
+**Variantes 3D no probadas (Fase 3).** Qué es: pooling anisótropo en Z, más capacidad, MedNeXt-3D, UpKern k5. Por qué se difirió: firma de piso en OARs; ni el 3D vanilla ni MedNeXt-2D ganaron en DVH. Qué lo reabriría: evidencia de error atribuible a la arquitectura (por ejemplo, el piso de seed muestra que la arquitectura mueve PTV-alta).
+
+**Loss × arquitectura (Fase 3).** Qué es: el veredicto 2D ≥ 3D vale con MAE. Qué lo reabriría: que la Fase 4 adopte una loss no-MAE → una corrida 3D con esa loss.
+
+**PSDM como 2.5D (Fase 3).** Qué es: 3D vs 2D sin PSDM (input A1), para atribuir por qué el 3D no aporta. Por qué se difirió: explica, pero no cambia la decisión operativa. Qué lo reabriría: querer publicar "el 3D no aporta" y atribuirlo.
+
+**A4 sin goals (Fase 3).** Qué es: el efecto de los goals se midió sin PSDM (A0 vs A1); el costo de ~0.9 pp en PTV-alta de CyC no se conoce con PSDM. Por qué se difirió: los goals se mantienen por diseño (canal de intención); la corrida no cambiaría esa decisión. Qué lo reabriría: que PTV-alta de CyC pase a ser el cuello de botella.
+
+**Piso de etiqueta definitivo (Fase 3).** Qué es: medir la variabilidad entre planificadores con pacientes que tengan más de una versión de plan (auditoría de Fase 0). Qué lo reabriría: querer cuantificar el techo alcanzable (Fase 4, publicación).
+
+**Técnicas no coplanares (Fase 3).** Qué es: "el 3D no aporta" es un hallazgo de VMAT coplanar. Con arcos no coplanares (SBRT, RC) deja de valer la separabilidad por corte. Qué lo reabriría: la incorporación de esas técnicas → re-evaluar el 3D desde cero.

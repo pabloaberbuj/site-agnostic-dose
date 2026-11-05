@@ -4,7 +4,8 @@
 > decisiones estructurales. Si algo de acá hay que cambiar, que chat o Claude Code lo
 > señalen explícitamente y se actualice este archivo — no se corrige "de facto" en otros lados.
 >
-> Última actualización: Fase 2 en curso — §11 (nivel de rigor y criterio de corte) + archivo de cabos
+> Última actualización: Fase 3 cerrada — U-Net 2D como arquitectura de operación; contenedor
+> (176,256) crop-to-BODY; dosis predicha × BODY; SSIM solo dentro del BODY. (Fase 2: §11 (nivel de rigor y criterio de corte) + archivo de cabos
 > sueltos agregados. (Fase 0: armonización cerrada — PRV, resolución de PTV, QA gate, pacientes fuera
 > de convención, red sobre grilla nativa, D0.035cm³≡Dmax, NPZ solo geometría.)
  
@@ -39,7 +40,9 @@ próstata se hereda como contexto en pausa, no como objetivo activo (ver §9).
   constraint). Heredar la métrica `dvh_curva_completa` del proyecto de próstata (mean|ΔV(D)|
   por banda de dosis; la banda media 40–80% Rx es la crítica para OARs).
 - **Secundarias / monitoreo:** MAE body, dose_score OpenKBP, y una métrica de **coherencia
-  espacial** tipo SSIM/MS-SSIM (relevante para la visualización médica, no solo la DVH).
+  espacial** tipo SSIM/MS-SSIM (relevante para la visualización médica, no solo la DVH),
+  calculada **dentro del BODY**: el SSIM de frame completo medía el aire no supervisado y se retiró
+  en Fase 3. Regla general: toda métrica se calcula sobre la región supervisada.
 - **Reporte siempre por sitio** (y por técnica cuando entre IMRT). El MAE global promedia y
   esconde — un canal puede mejorar un sitio y empeorar otro. IC95 por bootstrap por sitio.
 - **Control metodológico — no aplica como en próstata, y por diseño.** En próstata el clásico
@@ -143,6 +146,8 @@ entrada (modularlo por distancia queda como ablación, ver §4).
 - **Fase 3 — Arquitectura (B-eje).** Con la mejor representación de A fija:
   U-Net 2D → U-Net 3D con parches → MedNeXt (kernel 3→5, UpKern; código público de Xiong).
   DropBlock / CCReLU como ablaciones de regularización opcionales, prioridad baja.
+  **Cerrada:** la U-Net 2D queda como arquitectura de operación. El 3D vanilla empata en DVH
+  (mejora coherencia y MAE-body solo en CyC); MedNeXt-2D es peor. Ver `fase3_cerrada.md`.
 - **Fase 4 — Loss.** MAE es baseline. Probar DVH loss por tipo de estructura (serie/paralelo,
   estilo Xiong/Jhanwar) y SSIM para coherencia espacial. (Nota: en próstata MAE puro ganó y
   las losses DVH no aportaron — empezar por MAE y testear el resto contra esa vara.)
@@ -215,6 +220,14 @@ Nuevas de este proyecto:
   paciente lleva `protocol_id`. Los primeros experimentos usan un protocolo por sitio; la lista
   deja lista la incorporación de otras prescripciones y apartar un protocolo entero como
   hold-out (inferencia directa vs. reentrenamiento).
+- **Contenedor fijo (176,256) con crop al bbox del BODY** (Fase 3), offsets por paciente; la eval
+  des-hace crop y pad hacia la grilla nativa. Aplica a todas las arquitecturas.
+- **Dosis predicha × máscara BODY** en inferencia, evaluación y export (Fase 3). El BODY es input:
+  no hay leakage. Fuera del BODY la red no tiene supervisión.
+- **Arquitectura de operación: U-Net 2D** (Fase 3). Cambiarla requiere un trigger de
+  `cabos_sueltos.md`.
+- **Goals: se mantienen por diseño** (canal de intención, §3), no por métrica. Dentro de distribución
+  son casi neutros; su test real es el protocolo apartado como hold-out.
 - **Resolución de estructuras, cuatro salidas:** canónico → usa; alias conocido → remapea y
   loguea; ignore explícito → saltea; desconocido → falla ruidoso y va a revisión, nunca adivina.
   Los **PRV no se ignoran**: en órganos seriales el PRV es la geometría (ahí vive el constraint).
@@ -315,8 +328,9 @@ Los que aplican directo a este proyecto (el detalle vive en `aprendizajes_transv
   cargaba la serie RD). Argumento para preprocesador nuevo y limpio.
 - **MAE puro ganó en próstata; las losses basadas en DVH y momentos no aportaron.** Empezar por
   MAE, testear el resto contra esa vara.
-- **3D no aportó en próstata, pero era próstata** (gradiente axial suave). Se espera que sí
-  aporte en CyC/pelvis (estructura cráneo-caudal). No es contradicción — es contexto.
+- **3D no aportó en próstata, y tampoco en multi-sitio (Fase 3).** No mejora el DVH en ningún sitio
+  en general; en CyC mejora coherencia y MAE-body, no el DVH. Con VMAT coplanar y PSDM, el 2D ya ve
+  el eje cráneo-caudal. Re-evaluar con técnicas no coplanares.
 - **Higiene de documentación:** el estado actual vive en UN lugar (Tier 2, reescrito a la verdad
   de hoy); el *por qué cambió* va al append-only. No apilar correcciones inline (el doc viejo
   llegó a 2556 líneas con hallazgos revisados 3 veces).
@@ -374,8 +388,8 @@ Fase 0 puede aparecer en Fase 2). Los archivos de Tier 3 son legibles y reabribl
   raro y de volumen chico — baja prioridad).
 - Token de técnica vs. desambiguación vía beam plate (fase de IMRT).
 - Viabilidad del Pareto-conditioning (depende de la auditoría multi-plan de Fase 0).
-- Estrategia de parches: ROI-crop agresivo (nnDoseNet) + parches grandes para preservar
-  contexto global (la dosis es no-local) — evitar parches chicos sobre volumen full-body.
+- ~~Estrategia de parches~~ — resuelta en Fase 3: no hicieron falta (crop al BODY + contenedor
+  ajustado). Se reabre solo si una arquitectura 3D vuelve a ser candidata y no entra.
  
 
 ---

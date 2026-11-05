@@ -50,7 +50,7 @@ def main():
         sj = json.loads((ROOT / d / 'summary.json').read_text(encoding='utf-8'))
         sec = sj.get('secundarias_por_sitio', {})
         print(f'  secundarias {Path(d).name}: ' + ' | '.join(
-            f'{s} SSIM {v["ssim"]["mean"]:.3f} MAEbody {v["mae_body"]["mean"]:.2f}' for s, v in sec.items()))
+            f'{s} SSIM {v.get("ssim_body", v.get("ssim"))["mean"]:.3f} MAEbody {v["mae_body"]["mean"]:.2f}' for s, v in sec.items()))
     if fail:
         print(f'GUARDRAIL FALLA en {len(fail)} celda(s): posible bug de offset en crop/un-crop. PARAR.')
         sys.exit(2)

@@ -1,0 +1,20 @@
+== 2D (exp_a4_003_unet2d_psdm_c176x256): mean|ΔV| banda media 40-80, OAR, por paciente (menor = mejor)
+  ep100: pooled 2.659 (n=65) | CyC 2.30 Pelvis 3.76 Prostata 1.95
+  ep102: pooled 2.725 (n=65) | CyC 2.43 Pelvis 3.64 Prostata 2.13
+  ep113 (óptimo val/mae): pooled 2.487 (n=65) | CyC 2.18 Pelvis 3.34 Prostata 1.97
+  -> óptimo DVH: ep113
+== 3D (exp_b1_001_unet3d_psdm): mean|ΔV| banda media 40-80, OAR, por paciente (menor = mejor)
+  ep076 (óptimo val/mae): pooled 2.511 (n=65) | CyC 2.25 Pelvis 2.92 Prostata 2.39
+  ep082: pooled 2.616 (n=65) | CyC 2.47 Pelvis 3.10 Prostata 2.30
+  ep084: pooled 2.631 (n=65) | CyC 2.32 Pelvis 2.97 Prostata 2.63
+  -> óptimo DVH: ep076
+
+(a) óptimo val/mae: 2D ep113 vs 3D ep76  (2D−3D en paired_diff = ref−new; >0 = 3D mejor)
+  CyC      OAR media_40_80: -0.07 [-0.26,+0.14] | PTV alta_80_110: +0.32 [-0.77,+1.65]
+  Pelvis   OAR media_40_80: +0.43 [-0.13,+1.10] | PTV alta_80_110: +1.75 [+0.31,+3.53]
+  Prostata OAR media_40_80: -0.43 [-0.94,+0.06] | PTV alta_80_110: -1.63 [-2.80,-0.55]
+
+(b) óptimo DVH: 2D ep113 vs 3D ep76  (2D−3D en paired_diff = ref−new; >0 = 3D mejor)
+  CyC      OAR media_40_80: -0.07 [-0.26,+0.14] | PTV alta_80_110: +0.32 [-0.77,+1.65]
+  Pelvis   OAR media_40_80: +0.43 [-0.13,+1.10] | PTV alta_80_110: +1.75 [+0.31,+3.53]
+  Prostata OAR media_40_80: -0.43 [-0.94,+0.06] | PTV alta_80_110: -1.63 [-2.80,-0.55]

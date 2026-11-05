@@ -1,0 +1,64 @@
+# ============================================================
+# Fase 3 / eje B — B2: MedNeXt-2D (v1, kernel 3). Clon de exp_a4_003_unet2d_psdm_c176x256 (contenedor 176x256 con crop_body,
+# 7 canales A4/PSDM, split_v2, seed 42, AdamW 1e-4/1e-5, cosine 189, patience 28, 16-mixed); lo ÚNICO que cambia es la arquitectura.
+# Mismo path 2D que la U-Net (A0Module: aplanado B*Z, slice_chunk con checkpointing, masked_mae_body). Salida 1 canal lineal, sin DS.
+# Desviaciones de CHARTER §5 (parte de lo que se testea, no se corrigen): upsampling = ConvTranspose depthwise k3 s2 (no bilinear+1x1);
+# normalización = GroupNorm con num_groups=num_channels (por canal, tipo InstanceNorm) y no GroupNorm(8); activación GELU; expansión pointwise.
+# Variante: MedNeXt-S (exp_r=2, block_counts=[2]*9) con n_channels=16 (oficial 32 -> 5.47M); ver docs/fase3_B2_mednext2d.md para el conteo.
+# ============================================================
+
+experiment:
+  name: exp_b2_001_mednext2d_psdm
+  description: "B2: A4 (7 canales, contenedor 176x256 crop_body) con MedNeXt-2D S/n_channels=16 k3; todo lo demás idéntico a exp_a4_003"
+  seed: 42
+
+data:
+  npz_dir: "../../data/npz_v2b_body"
+  splits_file: "data/splits/split_v2.json"
+  harmonization_dir: "data/harmonization"
+  container:                 # crop centrado al bbox del BODY + pad a (H,W) fijo global
+    hw: [176, 256]
+    crop_body: true
+  datamodule: a4             # A4DataModule: A1 (6 canales) + Ch6 PSDM(PTV_High)
+  goal_mode: uniform
+  fill_sin_goal: 0   # fijo (ganador A1a)
+  ptv_ref: union             # EDT sobre uniÃ³n de PTVs; fallback 'high' si CyC sale raro
+  batch_size: 1
+  num_workers: 2             # 2 como en la Fase 2 (A4-2D viejo): con la VM apagada hay ~20 GB libres. No cambia resultados
+  pin_memory: true
+
+model:
+  arch: "mednext2d"
+  in_channels: 7
+  out_channels: 1
+  mednext_variant: "S"       # exp_r=2, block_counts=[2]*9 (oficial S)
+  mednext_n_channels: 16     # oficial 32 (5.47M params); 16 => 1.38M, la más cercana a la U-Net 2D base16/depth4 (1.81M)
+  mednext_kernel_size: 3
+  slice_chunk: 32            # cortes por chunk con gradient checkpointing (numéricamente idéntico, menos VRAM)
+
+loss:
+  name: "masked_mae_body"    # MAE puro dentro del body (Ch2). DVH-loss queda para Fase 4.
+
+optimizer:
+  name: "adamw"
+  lr: 1.0e-4
+  weight_decay: 1.0e-5
+
+scheduler:
+  name: "cosine"
+  max_epochs: 189            # horizonte COMPLETO, independiente de trainer.max_epochs (CHARTER Â§5)
+
+training:
+  max_epochs: 189
+  precision: "16-mixed"
+  gradient_clip_val: 1.0
+  early_stopping_patience: 28
+  monitor_metric: "val/mae"
+  monitor_mode: "min"
+
+epoch_scale:
+  n_train_ref: 265
+  n_train: 280
+  ref_max_epochs: 200
+  ref_patience: 30
+  factor: 0.946429

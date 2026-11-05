@@ -1,0 +1,21 @@
+[bench] inicio 2026-10-31 15:20:32 variantes=[0 1 2] pasos=80 guard RAM=3.0 GiB
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-31 15:20:32
+[ram] libre 22403 MiB (mín 2500) 2026-10-31 15:20:33
+[bench] --- workers=0 15:20:33 ---
+[bench] paso 60: 0.32 it/s (desde el paso 5), Z=141, RAM libre 19.69 GiB, VRAM pico asig. 6.36 GiB
+[bench] paso 70: 0.32 it/s (desde el paso 5), Z=128, RAM libre 19.63 GiB, VRAM pico asig. 8.20 GiB
+[bench] paso 80: 0.31 it/s (desde el paso 5), Z=133, RAM libre 18.94 GiB, VRAM pico asig. 8.20 GiB
+[bench] fin
+[ram] libre 21644 MiB (mín 2500) 2026-10-31 15:25:12
+[bench] --- workers=1 15:25:12 ---
+[bench] paso 60: 0.54 it/s (desde el paso 5), Z=141, RAM libre 18.16 GiB, VRAM pico asig. 6.36 GiB
+[bench] paso 70: 0.54 it/s (desde el paso 5), Z=128, RAM libre 17.53 GiB, VRAM pico asig. 8.20 GiB
+[bench] paso 80: 0.54 it/s (desde el paso 5), Z=133, RAM libre 17.46 GiB, VRAM pico asig. 8.20 GiB
+[bench] fin
+[ram] libre 21608 MiB (mín 2500) 2026-10-31 15:28:22
+[bench] --- workers=2 15:28:22 ---
+[bench] paso 60: 0.66 it/s (desde el paso 5), Z=141, RAM libre 16.32 GiB, VRAM pico asig. 6.36 GiB
+[bench] paso 70: 0.65 it/s (desde el paso 5), Z=128, RAM libre 16.51 GiB, VRAM pico asig. 8.20 GiB
+[bench] paso 80: 0.66 it/s (desde el paso 5), Z=133, RAM libre 16.52 GiB, VRAM pico asig. 8.20 GiB
+[bench] fin
+[bench] completo 2026-10-31 15:31:14

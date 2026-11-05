@@ -1,0 +1,7 @@
+[chain] inicio 2026-10-29 22:13:45  PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:256
+[gpu] libre (0 MiB en uso, tope 1500) 2026-10-29 22:13:46
+Sanity Checking DataLoader 0: 100%|##########| 2/2 [00:01<00:00,  1.03it/s][vram] epoch=0 tras val: pico asignada 3.03 GiB, pico reservada 7.98 GiB (total 11.99 GiB)
+Validation DataLoader 0: 100%|##########| 65/65 [01:13<00:00,  0.88it/s][A[vram] epoch=0 tras val: pico asignada 8.19 GiB, pico reservada 11.00 GiB (total 11.99 GiB)
+Epoch 0: 100%|##########| 280/280 [11:39<00:00,  0.40it/s, v_num=7, val/mae=13.50][vram] epoch=0 tras train: pico asignada 8.19 GiB, pico reservada 11.00 GiB (total 11.99 GiB)
+[canario] OK: sobrevivió 1 época completa
+[chain] CANARY_ONLY: fin tras el canario

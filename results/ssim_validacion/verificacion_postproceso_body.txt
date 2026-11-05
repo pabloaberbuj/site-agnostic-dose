@@ -1,0 +1,24 @@
+Verificación del post-proceso pred*BODY y del nuevo harness (eval_a0 net, split val, modelo 2D exp_a4_003 ep113, 65 pacientes).
+Tres evaluaciones: legacy (results/exp_a4_003.../metrics.csv), --no-body-mask (raw), con pred*BODY (masked).
+
+DVH (1104 filas paciente x estructura; bandas global/baja/media/alta):
+  legacy vs raw     max|dif| = 0.0        (el harness nuevo reproduce el DVH anterior exactamente)
+  raw    vs masked  max|dif| = 0.049 pp   (23 de 1104 filas cambian; 22 son del paciente PT_20011a605a19589c)
+  Agregados: OAR_all CyC max|dif| 0.0004 (media 40-80) / 0.0023 (alta); PTV_all CyC 0.0006 / 0.0096; Pelvis y Próstata 0.0000-0.0003.
+  Causa: hay estructuras con 1-4 vóxeles fuera del BODY en 6 pacientes de val (p. ej. PT_20011a605a19589c: PTV_High 1 vóxel fuera;
+  PT_89f8cd4ed9aba2e2: Bone_Mandible 4; PT_2284a0c8516d8a48: Eye_L 1; PT_0d16b8bf5710f29e: BrachPlex_PRV5_L 1; PT_187e3fddec933655: Oral_Cavity 1;
+  PT_c687aea3fc02ef4f: PTV_High). En PT_20011a605a19589c ese vóxel de PTV_High entra al D95 de la renormalización y mueve todas las
+  curvas unas centésimas de pp. El DVH "no cambia" a efectos prácticos (< 0.05 pp en cualquier celda, < 0.01 pp en los agregados),
+  pero no es idéntico bit a bit. El harness registra estas estructuras en summary.json -> estructuras_fuera_del_body.
+
+mae_body: masked vs legacy max|dif| = 0.0 (se calcula dentro del BODY).
+
+SSIM:
+  raw: ssim_frame_obsoleto vs ssim legacy        max|dif| = 2e-6   (reproduce)
+  raw: ssim_body y ssim_body_dosis5 vs la tabla de results/ssim_validacion/per_patient_2D.csv   max|dif| = 0.0 (reproduce)
+  masked - raw: ssim_body            media +0.0009  max|dif| 0.0168
+                ssim_body_dosis5     media +0.0006  max|dif| 0.0029
+                ssim_frame_obsoleto  media +0.2608  max|dif| 0.5007   (con pred*BODY el frame completo sube porque fuera del BODY pred=dosis=0)
+  (el cambio en ssim_body/ssim_body_dosis5 viene de las ventanas de borde del BODY, que dejan de ver los valores sin supervisión de afuera)
+
+Medias por sitio con pred*BODY (2D ep113): CyC ssim_body 0.925 / dosis5 0.890 (frame obsoleto 0.971); Pelvis 0.960 / 0.951 (0.972); Próstata 0.978 / 0.949 (0.985).

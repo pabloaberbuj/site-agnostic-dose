@@ -134,3 +134,25 @@
 - **Bug train/eval de padding de canales (A4):** el canal nuevo se rellenaba distinto en train (1.0) vs
   eval (0) → números absurdos. Unificar el padding en un solo método. Familia: consistencia
   train/inferencia (como la dose-mask del dose_score y el `cargar_ct` de próstata).
+
+## De Fase 3 (eje B, arquitectura)
+
+(→ detalle en `fase3_cerrada.md`.)
+
+- **Una métrica también puede estar mal: validar qué mide antes de decidir con ella.** El SSIM de
+  frame completo medía el aire no supervisado (71% de los píxeles en CyC) y sostenía una decisión
+  del eje A (goals). Toda métrica se restringe a la región supervisada (BODY).
+- **La red predice cualquier cosa donde no hay supervisión.** El 2D ponía ~10% Rx de error en el aire.
+  Post-proceso estándar: dosis × BODY.
+- **En VMAT coplanar, un 2D con PSDM se comporta como 2.5D.** El 3D no mejoró el DVH en próstata ni en
+  multi-sitio; su ganancia aparece en coherencia y MAE voxel a voxel en sitios largos (CyC). La
+  literatura rankea por métricas voxel (dose score de OpenKBP), donde el 3D sí gana: no es una
+  contradicción, se mide otra cosa.
+- **Firma de piso:** si arquitecturas distintas fallan en los mismos pacientes (errores correlacionados,
+  diferencia entre modelos << dispersión entre pacientes), el cuello de botella no es la arquitectura.
+- **Efectos opuestos en sitios vecinos con una sola seed → sospechar varianza entre corridas.** El IC
+  bootstrap por paciente no la incluye.
+- **Perfilar memoria con la forma real que entrega el datamodule.** El envelope medía 176×128 y el
+  datamodule padeaba a 256²: el supuesto "entra sin ckpt" era falso.
+- **El padding de aire es memoria tirada:** crop al BODY + contenedor fijo ajustado antes de pensar en
+  parches.

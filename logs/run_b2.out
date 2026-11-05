@@ -1,0 +1,14 @@
+[b2] inicio 2026-11-01 21:53:27
+[gpu] libre (0 MiB en uso, tope 1500) 2026-11-01 21:53:27
+[workers] corte por RAM: los reintentos siguen con 0 workers
+[retry] intento 1/30 falló (exit 4) 2026-11-01 21:54:21; espero 90 s y reanudo
+[gpu] libre (0 MiB en uso, tope 1500) 2026-11-01 21:55:52
+[ram] libre 7170 MiB (mín 2500) 2026-11-01 21:55:52
+[b2] inicio 2026-11-02 09:07:48
+[gpu] libre (0 MiB en uso, tope 1500) 2026-11-02 09:07:48
+[workers] corte por RAM: los reintentos siguen con 0 workers
+[retry] intento 1/30 falló (exit 4) 2026-11-02 09:11:06; espero 90 s y reanudo
+[gpu] libre (0 MiB en uso, tope 1500) 2026-11-02 09:12:36
+[ram] libre 6944 MiB (mín 2500) 2026-11-02 09:12:37
+[b2] best ckpt: C:\Pablo\Site Agnostic\repo\site-agnostic-dose\checkpoints\exp_b2_001_mednext2d_psdm\epoch=098.ckpt
+[b2] completo 2026-11-03 17:28:30
