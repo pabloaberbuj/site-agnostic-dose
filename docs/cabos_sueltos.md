@@ -122,3 +122,15 @@ elección por MAE no importa. A futuro: monitor secundario con DVH sobre un subc
 **Piso de etiqueta definitivo (Fase 3).** Qué es: medir la variabilidad entre planificadores con pacientes que tengan más de una versión de plan (auditoría de Fase 0). Qué lo reabriría: querer cuantificar el techo alcanzable (Fase 4, publicación).
 
 **Técnicas no coplanares (Fase 3).** Qué es: "el 3D no aporta" es un hallazgo de VMAT coplanar. Con arcos no coplanares (SBRT, RC) deja de valer la separabilidad por corte. Qué lo reabriría: la incorporación de esas técnicas → re-evaluar el 3D desde cero.
+
+### Spin-off trade-off (Etapas 1 y 1b)
+
+(→ `results/spinoff_tradeoff/etapa1/` y `etapa1b/`; cierre en CHARTER §9.)
+
+**Escalado vs. reoptimización en Pelvis (no corrido).** Qué es: separar si el compromiso cobertura vs intestino/derrame de la Etapa 1b es solo normalización (escalar el plan entero) o hubo reoptimización de forma; chequeo: escalar la predicción al D95 real y repetir la prueba sobre lo que sobra. Por qué se difirió: combinando etapas ya apunta a escalado (en el espacio sin escalado de la Etapa 1 no hay antagonismo; HOT fuera del PTV acoplado 0.94 a la cobertura), y ninguno de los dos resultados cambia el cierre del generador. Qué lo reabriría: planes múltiples extraídos, o querer ofrecer la cobertura de Pelvis como perilla explícita.
+
+**Concesión de cobertura predecible desde la anatomía (Próstata).** Qué es: D95 entregado / Rx se predice con R² 0.34–0.52 desde OVH por rol (robusto a rangos y sin extremos); vecinos r = 0.35. En CyC lo arrastran los casos de cavum. El modelo principal no puede aprenderlo (la normalización lo quita del target). Candidato a salida escalar extra (D95 esperado / Rx). Por qué se difirió: no es del eje de Fase 4. Qué lo reabriría: armar el uso de objetivos tipo RapidPlan, o retomar el spin-off de ML clásico.
+
+**Ponderar planes enteros por calidad (alternativa a la loss cuantílica).** Qué es: puntaje de calidad por plan desde el residual contra A4 y reentrenar ponderando. Por qué se difirió: el residual en train es ~66–76% del de val+test (optimista), así que exige predicciones out-of-fold (5 reentrenamientos). Qué lo reabriría: que la loss cuantílica produzca combinaciones infactibles o no calibre.
+
+**Validación con planes múltiples (Etapa 2 del spin-off).** Qué es: misma pregunta que "Piso de etiqueta definitivo" (Fase 3), desde el lado del compromiso: si la variación a anatomía fija es de calidad o de preferencia. Los planes extra no están extraídos ni procesados. Qué lo reabriría: la extracción (lo reabre para los dos cabos a la vez).

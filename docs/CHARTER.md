@@ -4,7 +4,8 @@
 > decisiones estructurales. Si algo de acá hay que cambiar, que chat o Claude Code lo
 > señalen explícitamente y se actualice este archivo — no se corrige "de facto" en otros lados.
 >
-> Última actualización: Fase 3 cerrada — U-Net 2D como arquitectura de operación; contenedor
+> Última actualización: spin-off de trade-off cerrado (Etapas 1/1b) — loss cuantílica agregada a
+> Fase 4 (§4); spin-offs registrados en §9. (Fase 3: U-Net 2D como arquitectura de operación; contenedor
 > (176,256) crop-to-BODY; dosis predicha × BODY; SSIM solo dentro del BODY. (Fase 2: §11 (nivel de rigor y criterio de corte) + archivo de cabos
 > sueltos agregados. (Fase 0: armonización cerrada — PRV, resolución de PTV, QA gate, pacientes fuera
 > de convención, red sobre grilla nativa, D0.035cm³≡Dmax, NPZ solo geometría.)
@@ -151,6 +152,21 @@ entrada (modularlo por distancia queda como ablación, ver §4).
 - **Fase 4 — Loss.** MAE es baseline. Probar DVH loss por tipo de estructura (serie/paralelo,
   estilo Xiong/Jhanwar) y SSIM para coherencia espacial. (Nota: en próstata MAE puro ganó y
   las losses DVH no aportaron — empezar por MAE y testear el resto contra esa vara.)
+  - **Loss cuantílica (pinball): simétrica en PTV, asimétrica fuera del PTV.** Penaliza más errar
+    por encima que por debajo en todo el tejido sano (OARs + BODY fuera del PTV), no solo en OARs:
+    el eje de calidad que encontró el spin-off es sinérgico y lo domina el derrame, así que
+    asimetría solo en OARs pediría combinaciones que ningún plan logró. Motivo: con datos reales
+    (no curados), la mediana es el planificador promedio; el percentil bajo aproxima "lo que logran
+    los planes mejores" para esa anatomía. El espacio normalizado (D95(PTV_High)=100%) impide que
+    la loss compre OARs resignando cobertura. Percentil moderado (30–40) para empezar.
+    **Es otro producto, no compite con las demás losses en las mismas métricas:** MAE y DVH contra
+    el plan real empeoran por construcción. Se evalúa por **calibración** por sitio (fracción de
+    pacientes fuera de muestra con el plan real por encima de lo predicho ≈ 1−τ, con τ el percentil
+    pedido de la dosis: τ=0.35 → 0.65) y por
+    el DVH de OARs contra los percentiles reales de vecinos anatómicos (OVH por rol). El modelo MAE
+    queda para visualización; el cuantílico, como target de optimización (§1, uso 2). Predicción
+    a contrastar: gana Pelvis, Próstata y CyC neutros. Alternativa (segunda): ponderar planes
+    enteros por calidad — exige predicciones out-of-fold. Evidencia: `results/spinoff_tradeoff/`.
 - **Fase de incorporación de IMRT (propia).** Al mezclar IMRT + VMAT del mismo sitio, la
   **desambiguación de técnica** pasa a ser pregunta de primera clase, medible contra el
   baseline VMAT-only limpio. Decidir ahí: token categórico de técnica (estilo class-label de
@@ -373,6 +389,19 @@ Fase 0 puede aparecer en Fase 2). Los archivos de Tier 3 son legibles y reabribl
 - **ML clásico dosis-corazón / DIBH mama izquierda.** Predecir dosis cardíaca en tomógrafo para
   decidir si conviene inspiración profunda, como decisión clínica pre-plan. Análogo directo al
   ML clásico de constraints de próstata. Trabajo paralelo, autocontenido.
+- **Generar y seleccionar propuestas de dosis (coordenada de trade-off). Cerrado.** Idea: muestrear
+  una familia de dosis por anatomía (barriendo un eje de compromiso) y elegir la mejor con criterios
+  predefinidos. Etapas 1/1b (residual real − A4, PCA, acoplamiento entre bloques): el espacio de
+  compromisos es de baja dimensión; el único compromiso real (cobertura vs tejido sano, Pelvis) es
+  en lo esencial la normalización del plan, una perilla que el planificador ya maneja. Lo que sí
+  quedó: el eje de calidad sinérgico que motiva la loss cuantílica (§4, Fase 4). Reabre: planes
+  múltiples por paciente extraídos (ver `cabos_sueltos.md`).
+- **ML clásico de DVH por OAR (estilo RapidPlan / PlanAI). En pausa.** No como control (§2), sino
+  como modelo propio: filas (paciente, OAR), features de geometría (OVH / PSDM del OAR, volumen,
+  fracción en rango Z del PTV) + requerimiento clínico (goal, prioridad) + competencia (PTV,
+  OARs vecinos); target DVH en pocos puntos. Interés de fondo: que capture la caída de dosis con
+  la distancia (gradiente de técnica y equipo) y la competencia PTV / OAR / tejido sano. Variante
+  por cuantiles = mismo objetivo que la loss cuantílica. Retomar al cerrar Fase 4.
 ---
  
 ## 10. Preguntas vivas / decisiones abiertas
@@ -387,7 +416,9 @@ Fase 0 puede aparecer en Fase 2). Los archivos de Tier 3 son legibles y reabribl
 - Regla de solapamiento por canal de goals (mínimo en máximos es natural; en medias el caso es
   raro y de volumen chico — baja prioridad).
 - Token de técnica vs. desambiguación vía beam plate (fase de IMRT).
-- Viabilidad del Pareto-conditioning (depende de la auditoría multi-plan de Fase 0).
+- Viabilidad del Pareto-conditioning (depende de la auditoría multi-plan de Fase 0). Con un plan
+  por paciente, el spin-off de trade-off no encontró ejes de compromiso más allá de la normalización
+  (§9); queda abierto solo con planes múltiples extraídos.
 - ~~Estrategia de parches~~ — resuelta en Fase 3: no hicieron falta (crop al BODY + contenedor
   ajustado). Se reabre solo si una arquitectura 3D vuelve a ser candidata y no entra.
  

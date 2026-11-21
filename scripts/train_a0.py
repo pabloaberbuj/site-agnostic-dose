@@ -32,6 +32,12 @@ def build_dm(cfg):
                             batch_size=d.batch_size, num_workers=d.num_workers, pin_memory=d.pin_memory,
                             pad_hw=frame_from_cfg(d), fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
                             ptv_ref=d.get('ptv_ref', 'union'), density_dir=ROOT / d.density_dir)
+    if d.get('datamodule', 'a0') == 'f4':   # Fase 4: A4 + bitmask de estructuras ∩ BODY para la loss de momentos
+        from src.datamodules.f4_datamodule import F4DataModule
+        return F4DataModule(ROOT / d.npz_dir, ROOT / d.splits_file, ROOT / d.harmonization_dir,
+                            batch_size=d.batch_size, num_workers=d.num_workers, pin_memory=d.pin_memory,
+                            pad_hw=frame_from_cfg(d), fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
+                            ptv_ref=d.get('ptv_ref', 'union'))
     if d.get('datamodule', 'a0') in ('a1', 'a4'):   # A1: + 3 canales de goals (fill_sin_goal / goal_mode / ptv_ref)
         from src.datamodules.a1_datamodule import A1DataModule
         if d.datamodule == 'a4':   # A4: A1 + Ch6 PSDM del PTV_High
@@ -92,7 +98,11 @@ def main():
     dm = build_dm(cfg)
     dm.setup()
     assert len(dm.train_ds) == es.n_train, f'N_train real {len(dm.train_ds)} != {es.n_train} del factor'
-    model = A0Module(cfg)
+    if cfg.loss.name == 'mae_dvhmoment':
+        from src.models.f4_module import F4Module
+        model = F4Module(cfg)
+    else:
+        model = A0Module(cfg)
 
     if args.bench_steps:
         import time

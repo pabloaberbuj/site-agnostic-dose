@@ -1,0 +1,61 @@
+# Fase 4, loss #1 variante L1 (DESVIACION nivel 2 de la spec: |dM_p| en vez de (dM_p)^2, mismas unidades que el MAE; la cuadratica no convergia el MAE): MAE-body + lambda*L_dvh (momentos p in {1,10} serie/paralelo, mask&BODY), lambda=0.3. Todo lo demas = exp_a4_003.
+# Spec: docs/PROMPT_code_f4_dvhloss_momentos.md. Monitor = val/loss (compuesta).
+
+experiment:
+  name: exp_f4_002_dvhmoment_l1_sp_lambda0p3
+  description: "F4 loss#1 momentos L1 serie/paralelo lambda=0.3; A4+U-Net2D+contenedor identicos a la vara"
+  seed: 42
+
+data:
+  npz_dir: "../../data/npz_v2b_body"
+  splits_file: "data/splits/split_v2.json"
+  harmonization_dir: "data/harmonization"
+  container:                 # crop centrado al bbox del BODY + pad a (H,W) fijo global
+    hw: [176, 256]
+    crop_body: true
+  datamodule: f4             # A4DataModule: A1 (6 canales) + Ch6 PSDM(PTV_High)
+  goal_mode: uniform
+  fill_sin_goal: 0   # fijo (ganador A1a)
+  ptv_ref: union             # EDT sobre uniÃ³n de PTVs; fallback 'high' si CyC sale raro
+  batch_size: 1
+  num_workers: 2             # 2 como en la Fase 2 (A4-2D viejo): con la VM apagada hay ~20 GB libres. No cambia resultados
+  pin_memory: true
+
+model:
+  arch: "unet2d"
+  in_channels: 7
+  out_channels: 1
+  base_features: 16
+  depth: 4
+  upsample_mode: "bilinear"
+  dropout: 0.0
+  slice_chunk: 32            # cortes por chunk con gradient checkpointing (numÃ©ricamente idÃ©ntico, menos VRAM)
+
+loss:
+  name: "mae_dvhmoment"   # masked_mae_body + lambda_dvh * L_dvh (src/losses/dvh_moments.py)
+  lambda_dvh: 0.3
+  moment_form: "l1"       # |dM_p| (%Rx) en vez de (dM_p)^2
+
+optimizer:
+  name: "adamw"
+  lr: 1.0e-4
+  weight_decay: 1.0e-5
+
+scheduler:
+  name: "cosine"
+  max_epochs: 189            # horizonte COMPLETO, independiente de trainer.max_epochs (CHARTER Â§5)
+
+training:
+  max_epochs: 189
+  precision: "16-mixed"
+  gradient_clip_val: 1.0
+  early_stopping_patience: 28
+  monitor_metric: "val/loss"
+  monitor_mode: "min"
+
+epoch_scale:
+  n_train_ref: 265
+  n_train: 280
+  ref_max_epochs: 200
+  ref_patience: 30
+  factor: 0.946429

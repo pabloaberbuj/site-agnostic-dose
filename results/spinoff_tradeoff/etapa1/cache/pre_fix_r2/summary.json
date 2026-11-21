@@ -1,0 +1,1324 @@
+{
+  "etapa": "spinoff_tradeoff_etapa1",
+  "modelo": "exp_a4_003_unet2d_psdm_c176x256 ep113",
+  "armonizacion_hash": "7ab16f73fa632a3e",
+  "pacientes": {
+    "Prostata": {
+      "n_train": 89,
+      "n_val": 21,
+      "n_test": 28
+    },
+    "Pelvis": {
+      "n_train": 90,
+      "n_val": 21,
+      "n_test": 27
+    },
+    "CyC": {
+      "n_train": 101,
+      "n_val": 23,
+      "n_test": 32
+    }
+  },
+  "uso_del_test": "Analisis no supervisado, sin seleccion de modelo. No se reportan metricas agregadas de desempeno (MAE ni mean|dV| por banda); solo estructura del residual (val+test, fuera de muestra).",
+  "oars_elegibles": {
+    "Prostata": {
+      "incluidos": [
+        "Bladder",
+        "FemoralHead_L",
+        "FemoralHead_R",
+        "Rectum"
+      ],
+      "descartados_por_presencia<90%": {
+        "Bowel_Small": 0.435,
+        "Sigmoid": 0.326
+      }
+    },
+    "Pelvis": {
+      "incluidos": [
+        "Bladder",
+        "Bowel_Small",
+        "Rectum"
+      ],
+      "descartados_por_presencia<90%": {
+        "FemoralHead_L": 0.051,
+        "FemoralHead_R": 0.051,
+        "Kidney_L": 0.138,
+        "Kidney_R": 0.138,
+        "Kidneys": 0.116,
+        "PenileBulb": 0.0,
+        "SpinalCord_PRV05": 0.174
+      }
+    },
+    "CyC": {
+      "incluidos": [
+        "A_Carotid_L",
+        "A_Carotid_R",
+        "Bone_Mandible",
+        "BrachPlex_PRV5_L",
+        "BrachPlex_PRV5_R",
+        "Brain",
+        "Brainstem_PRV05",
+        "Cochlea_L",
+        "Cochlea_R",
+        "Esophagus",
+        "Eye_L",
+        "Eye_R",
+        "Glnd_Submand_L",
+        "Glnd_Submand_R",
+        "Glnd_Thyroid",
+        "Lens_L",
+        "Lens_R",
+        "OpticChiasm_PRV3",
+        "OpticNrv_PRV03_L",
+        "OpticNrv_PRV03_R",
+        "Parotid_L",
+        "Parotid_R",
+        "SpinalCord_PRV05"
+      ],
+      "descartados_por_presencia<90%": {
+        "Glnd_Lacrimal_L": 0.481,
+        "Glnd_Lacrimal_R": 0.481,
+        "Joint_TM_L": 0.891,
+        "Joint_TM_R": 0.891,
+        "Larynx": 0.782,
+        "Lobe_Temporal_PRV3_L": 0.167,
+        "Lobe_Temporal_PRV3_R": 0.167,
+        "Musc_Constrict": 0.865,
+        "Oral_Cavity": 0.769,
+        "Pituitary": 0.34
+      }
+    }
+  },
+  "metrica_trabajo": {
+    "Prostata": {
+      "metrica_trabajo": "B",
+      "ratio_medio_vs_azar": {
+        "A": 0.6679949076110696,
+        "B": 0.6524279055156995
+      },
+      "nota": "ratio = spread_vecinos/spread_azar promediado sobre las 3 bandas; C se reporta pero no se usa"
+    },
+    "Pelvis": {
+      "metrica_trabajo": "B",
+      "ratio_medio_vs_azar": {
+        "B": 0.5019010264190952
+      },
+      "nota": "ratio = spread_vecinos/spread_azar promediado sobre las 3 bandas; C se reporta pero no se usa"
+    },
+    "CyC": {
+      "metrica_trabajo": "B",
+      "ratio_medio_vs_azar": {
+        "B": 0.5911439235625114
+      },
+      "nota": "ratio = spread_vecinos/spread_azar promediado sobre las 3 bandas; C se reporta pero no se usa"
+    }
+  },
+  "sitios": {
+    "Prostata": {
+      "tipo": "manual",
+      "n_val_test": 49,
+      "n_variables": 30,
+      "variables_descartadas": {
+        "OAR|FemoralHead_prox|dV_alta_80_100": "sin_varianza",
+        "OAR|FemoralHead_dist|dV_alta_80_100": "sin_varianza"
+      },
+      "componentes_retenidos": 4,
+      "autovalores_top6": [
+        9.28,
+        5.44,
+        4.54,
+        2.88,
+        1.76,
+        1.5
+      ],
+      "nula_p95_top6": [
+        3.18,
+        2.75,
+        2.48,
+        2.27,
+        2.08,
+        1.91
+      ],
+      "var_explicada_top3": [
+        0.309,
+        0.181,
+        0.151
+      ],
+      "estabilidad_loadings_cos_mediana_p5": {
+        "mediana": [
+          0.96,
+          0.89,
+          0.87,
+          0.85
+        ],
+        "p5": [
+          0.85,
+          0.67,
+          0.67,
+          0.63
+        ]
+      },
+      "sensibilidad_sin_estandarizar_por_unidades": {
+        "n_ret_unidades": 3,
+        "cos_vs_principal": [
+          0.9500965914138431,
+          0.853274334138093,
+          0.7747952007208363,
+          0.29293103202847437
+        ]
+      },
+      "acoplamiento_OAR_vs_otros_calidad": {
+        "PTV": {
+          "r": -0.2599728049122269,
+          "ci95": [
+            -0.5011025005115544,
+            0.07360223308225733
+          ],
+          "p_perm": 0.07249275072492752,
+          "significativo": false,
+          "signo": "antagonico"
+        },
+        "HOT": {
+          "r": -0.2794248189101873,
+          "ci95": [
+            -0.48926203309223154,
+            0.057765121951008504
+          ],
+          "p_perm": 0.050794920507949204,
+          "significativo": false,
+          "signo": "antagonico"
+        },
+        "FALL": {
+          "r": -0.04892439826668385,
+          "ci95": [
+            -0.31323539324333816,
+            0.2208066184208088
+          ],
+          "p_perm": 0.7465253474652536,
+          "significativo": false,
+          "signo": "antagonico"
+        }
+      },
+      "acoplamiento_todos_los_pares": {
+        "OAR~PTV": {
+          "r": -0.26,
+          "ic95": [
+            -0.5,
+            0.07
+          ],
+          "p_perm": 0.0725
+        },
+        "OAR~HOT": {
+          "r": -0.28,
+          "ic95": [
+            -0.49,
+            0.06
+          ],
+          "p_perm": 0.0508
+        },
+        "OAR~FALL": {
+          "r": -0.05,
+          "ic95": [
+            -0.31,
+            0.22
+          ],
+          "p_perm": 0.7465
+        },
+        "PTV~HOT": {
+          "r": 0.92,
+          "ic95": [
+            0.82,
+            0.96
+          ],
+          "p_perm": 0.0001
+        },
+        "PTV~FALL": {
+          "r": 0.37,
+          "ic95": [
+            0.13,
+            0.55
+          ],
+          "p_perm": 0.0175
+        },
+        "HOT~FALL": {
+          "r": 0.35,
+          "ic95": [
+            0.15,
+            0.53
+          ],
+          "p_perm": 0.0227
+        }
+      },
+      "alineacion_calidad_score_bloque": {
+        "OAR": 0.69,
+        "PTV": 1.0,
+        "HOT": 1.0,
+        "FALL": 1.0
+      },
+      "patron_componentes_por_bloque_calidad": [
+        {
+          "OAR": 0.09963747810187232,
+          "PTV": 0.744989561874048,
+          "HOT": 0.7349520374188184,
+          "FALL": 0.7123626448710525
+        },
+        {
+          "OAR": 0.2917379003687749,
+          "PTV": -0.31872502801038854,
+          "HOT": -0.30635130265466537,
+          "FALL": 0.38094458872451775
+        },
+        {
+          "OAR": 0.04391778356574157,
+          "PTV": -0.31802080395913784,
+          "HOT": -0.3346451864510931,
+          "FALL": 0.23347777376853576
+        },
+        {
+          "OAR": -0.02225995429848801,
+          "PTV": 0.38187173927068646,
+          "HOT": 0.29257107532358717,
+          "FALL": -0.11731286962429624
+        }
+      ],
+      "anatomia": [
+        {
+          "comp": 1,
+          "r2_loo": 0.36915131257754175,
+          "r2_ic95": [
+            -0.1531201575360493,
+            0.5437876693764033
+          ],
+          "r2_p_perm": 0.009900990099009901,
+          "n_descriptores": 24,
+          "metrica": "B",
+          "corr_vecinos": {
+            "r": 0.45685783039774,
+            "p_perm": 0.0014992503748125937,
+            "ci95": [
+              0.27468614089059307,
+              0.5983904755202692
+            ],
+            "n": 49
+          },
+          "corr_d95_abs": {
+            "r": 0.6880919643465098,
+            "p_perm": 0.0004997501249375312,
+            "ci95": [
+              0.4765110248337982,
+              0.8223425273556614
+            ],
+            "n": 49
+          },
+          "spearman_d95_abs": 0.5335714285714286
+        },
+        {
+          "comp": 2,
+          "r2_loo": -0.09739713619798884,
+          "r2_ic95": [
+            -0.25799476702564433,
+            -0.043663336127895795
+          ],
+          "r2_p_perm": 0.7722772277227723,
+          "n_descriptores": 24,
+          "metrica": "B",
+          "corr_vecinos": {
+            "r": -0.08813991941814375,
+            "p_perm": 0.5477261369315343,
+            "ci95": [
+              -0.40071782743403495,
+              0.2620854675310838
+            ],
+            "n": 49
+          },
+          "corr_d95_abs": {
+            "r": -0.19079974157254148,
+            "p_perm": 0.18640679660169915,
+            "ci95": [
+              -0.49340137875253287,
+              0.13426941212779486
+            ],
+            "n": 49
+          },
+          "spearman_d95_abs": -0.22122448979591836
+        },
+        {
+          "comp": 3,
+          "r2_loo": -0.11693805055806306,
+          "r2_ic95": [
+            -0.3461701167442335,
+            -0.023305476097184905
+          ],
+          "r2_p_perm": 0.8514851485148515,
+          "n_descriptores": 24,
+          "metrica": "B",
+          "corr_vecinos": {
+            "r": 0.15721278289770035,
+            "p_perm": 0.2893553223388306,
+            "ci95": [
+              -0.09531019359569036,
+              0.3911894317680023
+            ],
+            "n": 49
+          },
+          "corr_d95_abs": {
+            "r": -0.30127112780512605,
+            "p_perm": 0.03648175912043978,
+            "ci95": [
+              -0.5811265052825274,
+              0.03326125530060196
+            ],
+            "n": 49
+          },
+          "spearman_d95_abs": -0.20724489795918366
+        },
+        {
+          "comp": 4,
+          "r2_loo": -0.13586412103361267,
+          "r2_ic95": [
+            -0.580404100754542,
+            0.1357743753252024
+          ],
+          "r2_p_perm": 0.8415841584158416,
+          "n_descriptores": 24,
+          "metrica": "B",
+          "corr_vecinos": {
+            "r": 0.035231198253908254,
+            "p_perm": 0.7936031984007996,
+            "ci95": [
+              -0.2650616131347639,
+              0.2929376811854349
+            ],
+            "n": 49
+          },
+          "corr_d95_abs": {
+            "r": 0.3050109656412826,
+            "p_perm": 0.037481259370314844,
+            "ci95": [
+              -0.12917516999139325,
+              0.6591633279757078
+            ],
+            "n": 49
+          },
+          "spearman_d95_abs": 0.2187755102040816
+        }
+      ],
+      "optimismo_train": {
+        "mediana_ratio": 0.7613625009027845,
+        "ic95": [
+          0.6414109317801798,
+          0.9187879132325246
+        ],
+        "por_bloque": {
+          "OAR": 0.776927215352495,
+          "PTV": 0.8777353201490845,
+          "HOT": 1.981816803324675,
+          "FALL": 0.6987603515239182
+        },
+        "n_train": 89,
+        "n_oos": 49,
+        "n_vars": 30
+      },
+      "sesgo": {
+        "n_variables_con_sesgo_IC_sin_0": 15,
+        "escala_renorm_mediana_oos": 1.01,
+        "escala_p5_p95_oos": [
+          0.99,
+          1.022
+        ]
+      },
+      "replica": {
+        "k3": {
+          "n_ret": 7,
+          "n": 138,
+          "cos_vs_residual_top3": [
+            0.85,
+            0.83,
+            0.65,
+            0.36
+          ],
+          "cos_vs_residual_retenidos": [
+            0.85,
+            0.83,
+            0.65,
+            0.77
+          ],
+          "acoplamiento": {
+            "PTV": {
+              "r": -0.12,
+              "signo": "antagonico",
+              "significativo": false
+            },
+            "HOT": {
+              "r": -0.01,
+              "signo": "antagonico",
+              "significativo": false
+            },
+            "FALL": {
+              "r": 0.04,
+              "signo": "sinergico",
+              "significativo": false
+            }
+          }
+        },
+        "k5": {
+          "n_ret": 8,
+          "n": 138,
+          "cos_vs_residual_top3": [
+            0.81,
+            0.76,
+            0.51,
+            0.44
+          ],
+          "cos_vs_residual_retenidos": [
+            0.81,
+            0.76,
+            0.51,
+            0.69
+          ],
+          "acoplamiento": {
+            "PTV": {
+              "r": -0.13,
+              "signo": "antagonico",
+              "significativo": false
+            },
+            "HOT": {
+              "r": -0.01,
+              "signo": "antagonico",
+              "significativo": false
+            },
+            "FALL": {
+              "r": -0.12,
+              "signo": "antagonico",
+              "significativo": false
+            }
+          }
+        }
+      },
+      "lectura_predeclarada": [
+        "R\u00b2 anatomico alto en componente estable: anatomia que A4 no captura (vuelve al eje principal como hallazgo)"
+      ],
+      "detalle_componentes": [
+        {
+          "comp": 1,
+          "estable": true,
+          "estabilidad_cos_mediana": 0.96,
+          "r2_anatomico": 0.37,
+          "r2_bajo": false,
+          "replica_cos_k3": 0.85,
+          "replica_cos_k5": 0.81,
+          "replica": true
+        },
+        {
+          "comp": 2,
+          "estable": true,
+          "estabilidad_cos_mediana": 0.89,
+          "r2_anatomico": -0.1,
+          "r2_bajo": true,
+          "replica_cos_k3": 0.83,
+          "replica_cos_k5": 0.76,
+          "replica": true
+        },
+        {
+          "comp": 3,
+          "estable": true,
+          "estabilidad_cos_mediana": 0.87,
+          "r2_anatomico": -0.12,
+          "r2_bajo": true,
+          "replica_cos_k3": 0.65,
+          "replica_cos_k5": 0.51,
+          "replica": false
+        },
+        {
+          "comp": 4,
+          "estable": true,
+          "estabilidad_cos_mediana": 0.85,
+          "r2_anatomico": -0.14,
+          "r2_bajo": true,
+          "replica_cos_k3": 0.36,
+          "replica_cos_k5": 0.44,
+          "replica": false
+        }
+      ]
+    },
+    "Pelvis": {
+      "tipo": "manual",
+      "n_val_test": 48,
+      "n_variables": 26,
+      "variables_descartadas": {},
+      "componentes_retenidos": 2,
+      "autovalores_top6": [
+        14.59,
+        3.43,
+        2.0,
+        1.76,
+        1.0,
+        0.83
+      ],
+      "nula_p95_top6": [
+        3.07,
+        2.58,
+        2.31,
+        2.09,
+        1.91,
+        1.76
+      ],
+      "var_explicada_top3": [
+        0.561,
+        0.132,
+        0.077
+      ],
+      "estabilidad_loadings_cos_mediana_p5": {
+        "mediana": [
+          1.0,
+          0.95
+        ],
+        "p5": [
+          0.98,
+          0.77
+        ]
+      },
+      "sensibilidad_sin_estandarizar_por_unidades": {
+        "n_ret_unidades": 2,
+        "cos_vs_principal": [
+          0.9971355201671595,
+          0.9407266569172663
+        ]
+      },
+      "acoplamiento_OAR_vs_otros_calidad": {
+        "PTV": {
+          "r": 0.48371401882032333,
+          "ci95": [
+            -0.151420082221805,
+            0.7393739800601827
+          ],
+          "p_perm": 0.0023997600239976003,
+          "significativo": false,
+          "signo": "sinergico"
+        },
+        "HOT": {
+          "r": 0.5655277200289011,
+          "ci95": [
+            0.027107939727130295,
+            0.7559433520411009
+          ],
+          "p_perm": 0.00029997000299970003,
+          "significativo": true,
+          "signo": "sinergico"
+        },
+        "FALL": {
+          "r": 0.7850229346100962,
+          "ci95": [
+            0.6492574655511424,
+            0.8760610056281329
+          ],
+          "p_perm": 9.999000099990002e-05,
+          "significativo": true,
+          "signo": "sinergico"
+        }
+      },
+      "acoplamiento_todos_los_pares": {
+        "OAR~PTV": {
+          "r": 0.48,
+          "ic95": [
+            -0.15,
+            0.74
+          ],
+          "p_perm": 0.0024
+        },
+        "OAR~HOT": {
+          "r": 0.57,
+          "ic95": [
+            0.03,
+            0.76
+          ],
+          "p_perm": 0.0003
+        },
+        "OAR~FALL": {
+          "r": 0.79,
+          "ic95": [
+            0.65,
+            0.88
+          ],
+          "p_perm": 0.0001
+        },
+        "PTV~HOT": {
+          "r": 0.94,
+          "ic95": [
+            0.86,
+            0.97
+          ],
+          "p_perm": 0.0001
+        },
+        "PTV~FALL": {
+          "r": 0.71,
+          "ic95": [
+            0.17,
+            0.84
+          ],
+          "p_perm": 0.0001
+        },
+        "HOT~FALL": {
+          "r": 0.83,
+          "ic95": [
+            0.37,
+            0.93
+          ],
+          "p_perm": 0.0001
+        }
+      },
+      "alineacion_calidad_score_bloque": {
+        "OAR": 1.0,
+        "PTV": 1.0,
+        "HOT": 1.0,
+        "FALL": 1.0
+      },
+      "patron_componentes_por_bloque_calidad": [
+        {
+          "OAR": 0.5427166028736125,
+          "PTV": 0.5306361238471957,
+          "HOT": 0.8466892129943169,
+          "FALL": 0.9270533279403484
+        },
+        {
+          "OAR": 0.36799955645506816,
+          "PTV": -0.3791764236593315,
+          "HOT": -0.321814989070919,
+          "FALL": -0.04181616197232186
+        }
+      ],
+      "anatomia": [
+        {
+          "comp": 1,
+          "r2_loo": -1.328569315420883,
+          "r2_ic95": [
+            -6.086009480290207,
+            -0.29800408412920454
+          ],
+          "r2_p_perm": 1.0,
+          "n_descriptores": 23,
+          "metrica": "B",
+          "corr_vecinos": {
+            "r": 0.1454200689747586,
+            "p_perm": 0.3193403298350825,
+            "ci95": [
+              -0.10904585316732805,
+              0.33862485051880575
+            ],
+            "n": 48
+          },
+          "corr_d95_abs": {
+            "r": -0.2953859117070248,
+            "p_perm": 0.038980509745127435,
+            "ci95": [
+              -0.4552887362025346,
+              -0.0662028060563854
+            ],
+            "n": 48
+          },
+          "spearman_d95_abs": -0.2935301780286583
+        },
+        {
+          "comp": 2,
+          "r2_loo": -0.7156970884808977,
+          "r2_ic95": [
+            -1.9354422616597895,
+            0.3665388361651323
+          ],
+          "r2_p_perm": 0.9702970297029703,
+          "n_descriptores": 23,
+          "metrica": "B",
+          "corr_vecinos": {
+            "r": -0.0961219770282131,
+            "p_perm": 0.5112443778110944,
+            "ci95": [
+              -0.4354813116255794,
+              0.28655079763168845
+            ],
+            "n": 48
+          },
+          "corr_d95_abs": {
+            "r": -0.165772365003441,
+            "p_perm": 0.2543728135932034,
+            "ci95": [
+              -0.39731420751858704,
+              0.07060674063242468
+            ],
+            "n": 48
+          },
+          "spearman_d95_abs": -0.23252279635258358
+        }
+      ],
+      "optimismo_train": {
+        "mediana_ratio": 0.6634125989054264,
+        "ic95": [
+          0.4975282833371895,
+          1.0640796650118807
+        ],
+        "por_bloque": {
+          "OAR": 0.7958589849411429,
+          "PTV": 0.6477729125067522,
+          "HOT": 0.5566532164006055,
+          "FALL": 0.6314277880814207
+        },
+        "n_train": 90,
+        "n_oos": 48,
+        "n_vars": 26
+      },
+      "sesgo": {
+        "n_variables_con_sesgo_IC_sin_0": 10,
+        "escala_renorm_mediana_oos": 1.012,
+        "escala_p5_p95_oos": [
+          0.995,
+          1.197
+        ]
+      },
+      "replica": {
+        "k3": {
+          "n_ret": 6,
+          "n": 138,
+          "cos_vs_residual_top3": [
+            0.62,
+            0.69
+          ],
+          "cos_vs_residual_retenidos": [
+            0.62,
+            0.69
+          ],
+          "acoplamiento": {
+            "PTV": {
+              "r": -0.18,
+              "signo": "antagonico",
+              "significativo": false
+            },
+            "HOT": {
+              "r": -0.14,
+              "signo": "antagonico",
+              "significativo": false
+            },
+            "FALL": {
+              "r": 0.53,
+              "signo": "sinergico",
+              "significativo": true
+            }
+          }
+        },
+        "k5": {
+          "n_ret": 6,
+          "n": 138,
+          "cos_vs_residual_top3": [
+            0.64,
+            0.69
+          ],
+          "cos_vs_residual_retenidos": [
+            0.64,
+            0.69
+          ],
+          "acoplamiento": {
+            "PTV": {
+              "r": -0.2,
+              "signo": "antagonico",
+              "significativo": true
+            },
+            "HOT": {
+              "r": -0.15,
+              "signo": "antagonico",
+              "significativo": false
+            },
+            "FALL": {
+              "r": 0.57,
+              "signo": "sinergico",
+              "significativo": true
+            }
+          }
+        }
+      },
+      "lectura_predeclarada": [
+        "Eje de calidad global (sinergico OAR vs ['HOT', 'FALL']): rankea planes, no es coordenada de preferencia"
+      ],
+      "detalle_componentes": [
+        {
+          "comp": 1,
+          "estable": true,
+          "estabilidad_cos_mediana": 1.0,
+          "r2_anatomico": -1.33,
+          "r2_bajo": true,
+          "replica_cos_k3": 0.62,
+          "replica_cos_k5": 0.64,
+          "replica": false
+        },
+        {
+          "comp": 2,
+          "estable": true,
+          "estabilidad_cos_mediana": 0.95,
+          "r2_anatomico": -0.72,
+          "r2_bajo": true,
+          "replica_cos_k3": 0.69,
+          "replica_cos_k5": 0.69,
+          "replica": false
+        }
+      ]
+    },
+    "CyC": {
+      "tipo": "RapidPlan (contraste)",
+      "n_val_test": 55,
+      "n_variables": 126,
+      "variables_descartadas": {
+        "OAR|Eye_dist|dV_alta_80_100": "sin_varianza",
+        "OAR|Lens_prox|dV_alta_80_100": "sin_varianza",
+        "OAR|Lens_dist|dV_media_40_80": "sin_varianza",
+        "OAR|Lens_dist|dV_alta_80_100": "sin_varianza"
+      },
+      "componentes_retenidos": 4,
+      "autovalores_top6": [
+        41.99,
+        23.02,
+        8.52,
+        7.74,
+        4.78,
+        4.38
+      ],
+      "nula_p95_top6": [
+        6.82,
+        5.99,
+        5.61,
+        5.28,
+        5.02,
+        4.78
+      ],
+      "var_explicada_top3": [
+        0.333,
+        0.183,
+        0.068
+      ],
+      "estabilidad_loadings_cos_mediana_p5": {
+        "mediana": [
+          0.93,
+          0.72,
+          0.51,
+          0.77
+        ],
+        "p5": [
+          0.63,
+          0.43,
+          0.2,
+          0.55
+        ]
+      },
+      "sensibilidad_sin_estandarizar_por_unidades": {
+        "n_ret_unidades": 4,
+        "cos_vs_principal": [
+          0.9975388082762858,
+          0.9866751559546738,
+          0.7868908700457524,
+          0.53853531371369
+        ]
+      },
+      "acoplamiento_OAR_vs_otros_calidad": {
+        "PTV": {
+          "r": 0.7852998661957602,
+          "ci95": [
+            0.42481735007562293,
+            0.9611045512140635
+          ],
+          "p_perm": 0.00019998000199980003,
+          "significativo": true,
+          "signo": "sinergico"
+        },
+        "HOT": {
+          "r": 0.7567438981816668,
+          "ci95": [
+            0.43600418180681927,
+            0.965603174269593
+          ],
+          "p_perm": 9.999000099990002e-05,
+          "significativo": true,
+          "signo": "sinergico"
+        },
+        "FALL": {
+          "r": 0.6172241005045894,
+          "ci95": [
+            0.18977415146360485,
+            0.8765605399519341
+          ],
+          "p_perm": 0.0003999600039996,
+          "significativo": true,
+          "signo": "sinergico"
+        }
+      },
+      "acoplamiento_todos_los_pares": {
+        "OAR~PTV": {
+          "r": 0.79,
+          "ic95": [
+            0.42,
+            0.96
+          ],
+          "p_perm": 0.0002
+        },
+        "OAR~HOT": {
+          "r": 0.76,
+          "ic95": [
+            0.44,
+            0.97
+          ],
+          "p_perm": 0.0001
+        },
+        "OAR~FALL": {
+          "r": 0.62,
+          "ic95": [
+            0.19,
+            0.88
+          ],
+          "p_perm": 0.0004
+        },
+        "PTV~HOT": {
+          "r": 0.94,
+          "ic95": [
+            0.34,
+            0.99
+          ],
+          "p_perm": 0.0001
+        },
+        "PTV~FALL": {
+          "r": 0.67,
+          "ic95": [
+            -0.09,
+            0.86
+          ],
+          "p_perm": 0.0009
+        },
+        "HOT~FALL": {
+          "r": 0.69,
+          "ic95": [
+            -0.06,
+            0.87
+          ],
+          "p_perm": 0.0005
+        }
+      },
+      "alineacion_calidad_score_bloque": {
+        "OAR": 0.58,
+        "PTV": 0.64,
+        "HOT": 1.0,
+        "FALL": 1.0
+      },
+      "patron_componentes_por_bloque_calidad": [
+        {
+          "OAR": -0.21896574436641908,
+          "PTV": -0.10933113713049836,
+          "HOT": -0.8874788835270864,
+          "FALL": -0.7083068833789821
+        },
+        {
+          "OAR": -0.21252635511751317,
+          "PTV": 0.02834708888510458,
+          "HOT": -0.17594467097720523,
+          "FALL": -0.18913719066825227
+        },
+        {
+          "OAR": -0.07979380670591635,
+          "PTV": 0.10163323517912475,
+          "HOT": -0.12233919946305122,
+          "FALL": 0.10793828370029576
+        },
+        {
+          "OAR": -0.01264230132199012,
+          "PTV": 0.020406880999387426,
+          "HOT": -0.10589464556085368,
+          "FALL": 0.4211918031153754
+        }
+      ],
+      "anatomia": [
+        {
+          "comp": 1,
+          "r2_loo": -1.2463809937372328,
+          "r2_ic95": [
+            -20.572069727631114,
+            0.44963068210109014
+          ],
+          "r2_p_perm": 0.019801980198019802,
+          "n_descriptores": 262,
+          "metrica": "B",
+          "corr_vecinos": {
+            "r": 0.5596461265114978,
+            "p_perm": 0.01699150424787606,
+            "ci95": [
+              0.12943957917215154,
+              0.8526351010721255
+            ],
+            "n": 55
+          },
+          "corr_d95_abs": {
+            "r": -0.9443576063893648,
+            "p_perm": 0.0004997501249375312,
+            "ci95": [
+              -0.9824705190233385,
+              -0.49379480738682496
+            ],
+            "n": 55
+          },
+          "spearman_d95_abs": -0.35685425685425687
+        },
+        {
+          "comp": 2,
+          "r2_loo": -2.5609500718042453,
+          "r2_ic95": [
+            -24.75286663557369,
+            -0.02634087806782863
+          ],
+          "r2_p_perm": 0.019801980198019802,
+          "n_descriptores": 262,
+          "metrica": "B",
+          "corr_vecinos": {
+            "r": 0.2261108256341811,
+            "p_perm": 0.06746626686656672,
+            "ci95": [
+              0.011655618276250057,
+              0.753258017584844
+            ],
+            "n": 55
+          },
+          "corr_d95_abs": {
+            "r": -0.06862598572714636,
+            "p_perm": 0.3213393303348326,
+            "ci95": [
+              -0.829546508127153,
+              0.7327445246777049
+            ],
+            "n": 55
+          },
+          "spearman_d95_abs": 0.024170274170274175
+        },
+        {
+          "comp": 3,
+          "r2_loo": -0.5251534025065718,
+          "r2_ic95": [
+            -16.746301513686426,
+            0.8710149952932451
+          ],
+          "r2_p_perm": 0.019801980198019802,
+          "n_descriptores": 262,
+          "metrica": "B",
+          "corr_vecinos": {
+            "r": -0.34183086551056485,
+            "p_perm": 0.03648175912043978,
+            "ci95": [
+              -0.7926145648918808,
+              0.23493596816519424
+            ],
+            "n": 55
+          },
+          "corr_d95_abs": {
+            "r": 0.0006126778679223994,
+            "p_perm": 0.992503748125937,
+            "ci95": [
+              -0.8374866075405993,
+              0.8162585347845336
+            ],
+            "n": 55
+          },
+          "spearman_d95_abs": -0.09271284271284272
+        },
+        {
+          "comp": 4,
+          "r2_loo": -6.394909942336316,
+          "r2_ic95": [
+            -20.317448042059368,
+            -0.051236599605996046
+          ],
+          "r2_p_perm": 0.0297029702970297,
+          "n_descriptores": 262,
+          "metrica": "B",
+          "corr_vecinos": {
+            "r": 0.24957186085485658,
+            "p_perm": 0.06296851574212893,
+            "ci95": [
+              -0.0908192795594928,
+              0.5275057869382096
+            ],
+            "n": 55
+          },
+          "corr_d95_abs": {
+            "r": -0.08945614518242656,
+            "p_perm": 0.47126436781609193,
+            "ci95": [
+              -0.2253368115322575,
+              0.13302655861388843
+            ],
+            "n": 55
+          },
+          "spearman_d95_abs": -0.03968253968253969
+        }
+      ],
+      "optimismo_train": {
+        "mediana_ratio": 0.684189262978042,
+        "ic95": [
+          0.42235308365049395,
+          0.9620796401649289
+        ],
+        "por_bloque": {
+          "OAR": 0.6915378750305659,
+          "PTV": 0.8049965046845138,
+          "HOT": 1.0063640003733056,
+          "FALL": 0.3794584894438609
+        },
+        "n_train": 101,
+        "n_oos": 55,
+        "n_vars": 126
+      },
+      "sesgo": {
+        "n_variables_con_sesgo_IC_sin_0": 32,
+        "escala_renorm_mediana_oos": 1.02,
+        "escala_p5_p95_oos": [
+          0.978,
+          1.052
+        ]
+      },
+      "replica": {
+        "k3": {
+          "n_ret": 15,
+          "n": 156,
+          "cos_vs_residual_top3": [
+            0.49,
+            0.54,
+            0.25,
+            0.35
+          ],
+          "cos_vs_residual_retenidos": [
+            0.49,
+            0.54,
+            0.25,
+            0.42
+          ],
+          "acoplamiento": {
+            "PTV": {
+              "r": -0.17,
+              "signo": "antagonico",
+              "significativo": false
+            },
+            "HOT": {
+              "r": 0.19,
+              "signo": "sinergico",
+              "significativo": false
+            },
+            "FALL": {
+              "r": 0.58,
+              "signo": "sinergico",
+              "significativo": true
+            }
+          }
+        },
+        "k5": {
+          "n_ret": 16,
+          "n": 156,
+          "cos_vs_residual_top3": [
+            0.48,
+            0.62,
+            0.31,
+            0.26
+          ],
+          "cos_vs_residual_retenidos": [
+            0.48,
+            0.62,
+            0.31,
+            0.32
+          ],
+          "acoplamiento": {
+            "PTV": {
+              "r": 0.46,
+              "signo": "sinergico",
+              "significativo": true
+            },
+            "HOT": {
+              "r": 0.43,
+              "signo": "sinergico",
+              "significativo": false
+            },
+            "FALL": {
+              "r": 0.6,
+              "signo": "sinergico",
+              "significativo": true
+            }
+          }
+        }
+      },
+      "lectura_predeclarada": [
+        "Eje de calidad global (sinergico OAR vs ['PTV', 'HOT', 'FALL']): rankea planes, no es coordenada de preferencia"
+      ],
+      "detalle_componentes": [
+        {
+          "comp": 1,
+          "estable": true,
+          "estabilidad_cos_mediana": 0.93,
+          "r2_anatomico": -1.25,
+          "r2_bajo": true,
+          "replica_cos_k3": 0.49,
+          "replica_cos_k5": 0.48,
+          "replica": false
+        },
+        {
+          "comp": 2,
+          "estable": false,
+          "estabilidad_cos_mediana": 0.72,
+          "r2_anatomico": -2.56,
+          "r2_bajo": true,
+          "replica_cos_k3": 0.54,
+          "replica_cos_k5": 0.62,
+          "replica": false
+        },
+        {
+          "comp": 3,
+          "estable": false,
+          "estabilidad_cos_mediana": 0.51,
+          "r2_anatomico": -0.53,
+          "r2_bajo": true,
+          "replica_cos_k3": 0.25,
+          "replica_cos_k5": 0.31,
+          "replica": false
+        },
+        {
+          "comp": 4,
+          "estable": false,
+          "estabilidad_cos_mediana": 0.77,
+          "r2_anatomico": -6.39,
+          "r2_bajo": true,
+          "replica_cos_k3": 0.35,
+          "replica_cos_k5": 0.26,
+          "replica": false
+        }
+      ]
+    }
+  },
+  "contraste_sitios": {
+    "nota": "Contraste, no control limpio: CyC difiere en generador (RapidPlan) Y en anatomia. Variables comunes: PTV_High, hotspot, camaras, BODY.",
+    "retenidos": {
+      "Prostata": 4,
+      "Pelvis": 2,
+      "CyC": 4
+    },
+    "desvio_mediano_variables_comunes": {
+      "Prostata": 1.069,
+      "Pelvis": 3.471,
+      "CyC": 2.545
+    }
+  },
+  "decisiones": [
+    "Bandas de dosis semiabiertas [lo,hi) salvo la ultima (80-100 incluye 100); dosis en %Rx_High (NPZ ya normalizado a D95(PTV_High)=100%).",
+    "Dosis predicha: clip a 0, x BODY, renormalizada a D95(PTV_High)=100% con dvh.renorm_pred (misma funcion del harness); factor guardado por paciente en cache.",
+    "PTV_Low de 16 pacientes de Prostata (nivel no declarado, identico a High) ignorado: solo niveles del protocolo.",
+    "Bilaterales _L/_R: slot prox/dist por distancia minima al PTV_High; si falta uno de los dos en un paciente, ambos slots quedan NaN (imputados con la media tras centrar).",
+    "Variables con >30% NaN o sin varianza se descartan (lista en summary); camaras con <50 voxeles = NaN. NaN restantes imputados con la media (0 tras centrar).",
+    "D0.035cm3 = percentil 100*(1-0.035/V_cc) de las dosis de la estructura (maximo si V<0.035cc). \u0394Dmax solo en OARs con goal tipo Dmax.",
+    "PTV Mid/Low: \u0394D95 en % de la Rx del propio nivel. Homogeneidad = (D2-D98)/D50. PTV: D50 sin signo de calidad (ambiguo).",
+    "Score por bloque = PC1 de las variables estandarizadas del bloque, orientado a calidad (+ = real mejor que predicho): OAR/hotspot/camaras: menos dosis=mejor; PTV: D98/D95 mas alto y D2/homogeneidad mas bajos = mejor. r<0 entre OAR y otro bloque = antagonico; r>0 = sinergico.",
+    "Acoplamiento significativo: p de permutacion < 0.05/3 (Bonferroni sobre OAR vs PTV/HOT/FALL) E IC95 bootstrap sin 0.",
+    "Sensibilidad \"sin estandarizar\": cada variable dividida por el desvio RMS de su grupo de unidades (pp, % dosis, cm3, razon), no por el propio.",
+    "R\u00b2 anatomico: ridge con alpha elegido por LOO interno dentro de cada pliegue (LOO externo), descriptores estandarizados en el pliegue; IC95 bootstrap sobre pares (y, pred LOO); p por permutacion de y (100).",
+    "Vecinos del \u00a75.5 buscados SOLO dentro de val+test (el score solo existe fuera de muestra), con la distancia de la metrica de trabajo, k=3.",
+    "Replica \u00a76: desviacion vs promedio de los k vecinos sobre TODOS los elegibles del sitio (real vs real); loadings comparables = corr(score, variables compactas). Criterio de replica: coseno k=3 > 0.7 (k=5 se reporta).",
+    "Criterio de \"R\u00b2 anatomico bajo\" para la lectura: R\u00b2 LOO (estimacion puntual) < 0.2 en el componente; se evalua por componente estable.",
+    "Optimismo: razon de RMS por variable (sin centrar) train / val+test, resumida por mediana; IC bootstrap de pacientes en ambos grupos.",
+    "Candidata B: roles con peso igual por slot y por referencia (PTV_High / union); curvas y escalares con peso igual (cada grupo normalizado por la mediana de distancias entre pares del sitio). OVH en grilla 0-150 mm cada 2.5 mm; vol OAR/PTV en bruto (no log).",
+    "Spread del azar: k=3 vecinos aleatorios del sitio, 100 repeticiones; spread comparado solo en celdas (paciente, slot) validas para todas las candidatas."
+  ]
+}

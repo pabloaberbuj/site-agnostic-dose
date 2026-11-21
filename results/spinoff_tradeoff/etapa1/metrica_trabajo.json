@@ -1,0 +1,24 @@
+{
+  "Prostata": {
+    "metrica_trabajo": "B",
+    "ratio_medio_vs_azar": {
+      "A": 0.6679949076110696,
+      "B": 0.6524279055156995
+    },
+    "nota": "ratio = spread_vecinos/spread_azar promediado sobre las 3 bandas; C se reporta pero no se usa"
+  },
+  "Pelvis": {
+    "metrica_trabajo": "B",
+    "ratio_medio_vs_azar": {
+      "B": 0.5019010264190952
+    },
+    "nota": "ratio = spread_vecinos/spread_azar promediado sobre las 3 bandas; C se reporta pero no se usa"
+  },
+  "CyC": {
+    "metrica_trabajo": "B",
+    "ratio_medio_vs_azar": {
+      "B": 0.5911439235625114
+    },
+    "nota": "ratio = spread_vecinos/spread_azar promediado sobre las 3 bandas; C se reporta pero no se usa"
+  }
+}

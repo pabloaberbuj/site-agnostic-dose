@@ -48,9 +48,9 @@ def get_ds(split, cfg_data=None):
         from src.datamodules.a5_datamodule import A5DataModule
         dm = A5DataModule(*args, pad_hw=frame_from_cfg(d), fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
                           ptv_ref=d.get('ptv_ref', 'union'), density_dir=ROOT / d.density_dir)
-    elif d and d.get('datamodule', 'a0') in ('a1', 'a4'):
+    elif d and d.get('datamodule', 'a0') in ('a1', 'a4', 'f4'):
         from src.datamodules.a1_datamodule import A1DataModule
-        if d.datamodule == 'a4':
+        if d.datamodule in ('a4', 'f4'):   # f4 = a4 + bitmask de la loss; el eval usa load_raw/pad_channels (idénticos)
             from src.datamodules.a4_datamodule import A4DataModule as A1DataModule
         dm = A1DataModule(*args, pad_hw=frame_from_cfg(d), fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
                           ptv_ref=d.get('ptv_ref', 'union'))

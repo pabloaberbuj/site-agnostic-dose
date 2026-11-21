@@ -156,3 +156,31 @@
   datamodule padeaba a 256²: el supuesto "entra sin ckpt" era falso.
 - **El padding de aire es memoria tirada:** crop al BODY + contenedor fijo ajustado antes de pensar en
   parches.
+
+## Spin-off trade-off (Etapas 1 y 1b)
+
+(→ `results/spinoff_tradeoff/etapa1/`, `etapa1b/`; cierre en CHARTER §9.)
+
+- **La normalización del target decide qué compromisos se ven.** D95(PTV_High)=100% borra la
+  concesión de cobertura del planificador (decisión real, en parte anatómica en Próstata); el
+  espacio absoluto (% de la Rx del protocolo) la recupera pero reintroduce el escalado global del
+  plan. Mirar los dos: lo que aparece solo cuando hay escalado es normalización, no reoptimización.
+- **Renormalizar elimina el escalado por completo.** Un componente en espacio normalizado que
+  correlaciona con el D95 entregado no es artefacto de la renormalización: es forma (p.ej.
+  heterogeneidad del PTV, si se normalizó por otro punto que D95). Lectura errónea corregida en el
+  chat del spin-off.
+- **Las variables de una misma estructura co-varían por construcción.** Una nula que permuta
+  columnas por separado infla el número de componentes; usar nula que permuta bloques enteros y
+  leer el signo del acoplamiento entre bloques (antagónico = compromiso; sinérgico = calidad).
+- **El máximo del BODY vive dentro del PTV:** hotspot de BODY ≈ variable de PTV (r ≈ 0.93).
+  Definir el hotspot fuera de los PTV.
+- **Antes de aceptar un acoplamiento, rangos y sin extremos.** Los "antagonismos" de Próstata y
+  CyC eran colas (en CyC, los casos de cavum ya revisados); solo Pelvis sobrevivió.
+- **Con un plan por paciente, el espacio de compromisos fue de baja dimensión:** no sostiene
+  generadores de familias de planes. Lo que sí tiene estructura es un eje de calidad sinérgico
+  (Pelvis: OAR, hotspot y derrame mejoran juntos), que sostiene losses que empujan hacia planes
+  mejores (cuantílica) en vez de modelar preferencias.
+- **Similitud anatómica:** OVH por rol reduce el spread del DVH real 35–50% contra vecinos al azar
+  (mejor que las 7 features de próstata, que fallan en dosis baja). El DVH predicho por la red
+  agrupa todavía mejor: la red ve anatomía que el OVH no resume. En Próstata, el recto en banda
+  media casi no lo explica la geometría (−13% vs azar): el piso de D3 se reproduce.

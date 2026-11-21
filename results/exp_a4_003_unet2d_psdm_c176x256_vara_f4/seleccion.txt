@@ -1,0 +1,21 @@
+== criterio pooled OAR banda media 40-80 (menor = mejor), val n=65 ==
+  ep100: pooled 2.659 | CyC 2.30 Pelvis 3.76 Prostata 1.95
+  ep102: pooled 2.725 | CyC 2.43 Pelvis 3.64 Prostata 2.13
+  ep113 (óptimo val/mae): pooled 2.487 | CyC 2.18 Pelvis 3.34 Prostata 1.97
+  -> checkpoint elegido: ep113
+
+== VARA (ep113) por sitio, IC95 bootstrap ==
+  CyC       pooled-OAR-media(sitio) 2.18 | OAR-media 40-80 2.18 [1.71,2.82] | PTV-alta 80-110 7.49 [6.35,8.87]
+            MAE-body 2.32 [2.13,2.51] | SSIM_BODY 0.925 [0.916,0.933] | SSIM BODY∩dosis>5% 0.890 [0.879,0.901] | [frame obsoleto 0.971]
+  Pelvis    pooled-OAR-media(sitio) 3.34 | OAR-media 40-80 3.34 [2.33,4.56] | PTV-alta 80-110 4.66 [3.07,6.72]
+            MAE-body 2.53 [2.20,2.89] | SSIM_BODY 0.960 [0.954,0.967] | SSIM BODY∩dosis>5% 0.951 [0.945,0.957] | [frame obsoleto 0.972]
+  Prostata  pooled-OAR-media(sitio) 1.97 | OAR-media 40-80 1.97 [1.66,2.30] | PTV-alta 80-110 4.98 [3.72,6.38]
+            MAE-body 0.92 [0.84,1.00] | SSIM_BODY 0.978 [0.970,0.983] | SSIM BODY∩dosis>5% 0.949 [0.944,0.954] | [frame obsoleto 0.985]
+
+== DELTA vs evaluación legacy de exp_a4_003 ep113 (nuevo − legacy; pred*BODY vs cruda) ==
+  CyC       OAR_all media_40_80 +0.0000 (max|dif| paciente 0.0004) | PTV_all alta_80_110 +0.0004 (max|dif| paciente 0.0096)
+  Pelvis    OAR_all media_40_80 +0.0000 (max|dif| paciente 0.0000) | PTV_all alta_80_110 +0.0000 (max|dif| paciente 0.0000)
+  Prostata  OAR_all media_40_80 +0.0000 (max|dif| paciente 0.0000) | PTV_all alta_80_110 +0.0000 (max|dif| paciente 0.0000)
+  ssim_body nuevo − tabla ssim_validacion (cruda): media +0.0009, max|dif| 0.0168
+  ssim_body_dosis5 nuevo − tabla ssim_validacion (cruda): media +0.0006, max|dif| 0.0029
+  mae_body nuevo − legacy: max|dif| 0.00e+00

@@ -1,0 +1,163 @@
+{
+  "Prostata": {
+    "n_pacientes": 138,
+    "presencia": {
+      "Bladder": 1.0,
+      "Bowel_Small": 0.43478260869565216,
+      "FemoralHead_L": 1.0,
+      "FemoralHead_R": 1.0,
+      "Rectum": 1.0,
+      "Sigmoid": 0.32608695652173914
+    },
+    "elegibles": [
+      "Bladder",
+      "FemoralHead_L",
+      "FemoralHead_R",
+      "Rectum"
+    ],
+    "descartados_por_presencia": {
+      "Bowel_Small": 0.435,
+      "Sigmoid": 0.326
+    },
+    "con_dmax": {
+      "Bladder": false,
+      "FemoralHead_L": true,
+      "FemoralHead_R": true,
+      "Rectum": false
+    }
+  },
+  "Pelvis": {
+    "n_pacientes": 138,
+    "presencia": {
+      "Bladder": 1.0,
+      "Bowel_Small": 0.9782608695652174,
+      "FemoralHead_L": 0.050724637681159424,
+      "FemoralHead_R": 0.050724637681159424,
+      "Kidney_L": 0.13768115942028986,
+      "Kidney_R": 0.13768115942028986,
+      "Kidneys": 0.11594202898550725,
+      "PenileBulb": 0.0,
+      "Rectum": 1.0,
+      "SpinalCord_PRV05": 0.17391304347826086
+    },
+    "elegibles": [
+      "Bladder",
+      "Bowel_Small",
+      "Rectum"
+    ],
+    "descartados_por_presencia": {
+      "FemoralHead_L": 0.051,
+      "FemoralHead_R": 0.051,
+      "Kidney_L": 0.138,
+      "Kidney_R": 0.138,
+      "Kidneys": 0.116,
+      "PenileBulb": 0.0,
+      "SpinalCord_PRV05": 0.174
+    },
+    "con_dmax": {
+      "Bladder": false,
+      "Bowel_Small": false,
+      "Rectum": false
+    }
+  },
+  "CyC": {
+    "n_pacientes": 156,
+    "presencia": {
+      "A_Carotid_L": 0.9487179487179487,
+      "A_Carotid_R": 0.9551282051282052,
+      "Bone_Mandible": 1.0,
+      "BrachPlex_PRV5_L": 0.967948717948718,
+      "BrachPlex_PRV5_R": 0.9615384615384616,
+      "Brain": 0.9358974358974359,
+      "Brainstem_PRV05": 0.9935897435897436,
+      "Cochlea_L": 0.9871794871794872,
+      "Cochlea_R": 0.9871794871794872,
+      "Esophagus": 0.9551282051282052,
+      "Eye_L": 0.9935897435897436,
+      "Eye_R": 0.9935897435897436,
+      "Glnd_Lacrimal_L": 0.4807692307692308,
+      "Glnd_Lacrimal_R": 0.4807692307692308,
+      "Glnd_Submand_L": 0.9102564102564102,
+      "Glnd_Submand_R": 0.9358974358974359,
+      "Glnd_Thyroid": 0.9551282051282052,
+      "Joint_TM_L": 0.8910256410256411,
+      "Joint_TM_R": 0.8910256410256411,
+      "Larynx": 0.782051282051282,
+      "Lens_L": 0.9871794871794872,
+      "Lens_R": 0.9871794871794872,
+      "Lobe_Temporal_PRV3_L": 0.16666666666666666,
+      "Lobe_Temporal_PRV3_R": 0.16666666666666666,
+      "Musc_Constrict": 0.8653846153846154,
+      "OpticChiasm_PRV3": 0.9294871794871795,
+      "OpticNrv_PRV03_L": 0.967948717948718,
+      "OpticNrv_PRV03_R": 0.967948717948718,
+      "Oral_Cavity": 0.7692307692307693,
+      "Parotid_L": 0.9935897435897436,
+      "Parotid_R": 0.9807692307692307,
+      "Pituitary": 0.33974358974358976,
+      "SpinalCord_PRV05": 1.0
+    },
+    "elegibles": [
+      "A_Carotid_L",
+      "A_Carotid_R",
+      "Bone_Mandible",
+      "BrachPlex_PRV5_L",
+      "BrachPlex_PRV5_R",
+      "Brain",
+      "Brainstem_PRV05",
+      "Cochlea_L",
+      "Cochlea_R",
+      "Esophagus",
+      "Eye_L",
+      "Eye_R",
+      "Glnd_Submand_L",
+      "Glnd_Submand_R",
+      "Glnd_Thyroid",
+      "Lens_L",
+      "Lens_R",
+      "OpticChiasm_PRV3",
+      "OpticNrv_PRV03_L",
+      "OpticNrv_PRV03_R",
+      "Parotid_L",
+      "Parotid_R",
+      "SpinalCord_PRV05"
+    ],
+    "descartados_por_presencia": {
+      "Glnd_Lacrimal_L": 0.481,
+      "Glnd_Lacrimal_R": 0.481,
+      "Joint_TM_L": 0.891,
+      "Joint_TM_R": 0.891,
+      "Larynx": 0.782,
+      "Lobe_Temporal_PRV3_L": 0.167,
+      "Lobe_Temporal_PRV3_R": 0.167,
+      "Musc_Constrict": 0.865,
+      "Oral_Cavity": 0.769,
+      "Pituitary": 0.34
+    },
+    "con_dmax": {
+      "A_Carotid_L": true,
+      "A_Carotid_R": true,
+      "Bone_Mandible": false,
+      "BrachPlex_PRV5_L": true,
+      "BrachPlex_PRV5_R": true,
+      "Brain": true,
+      "Brainstem_PRV05": true,
+      "Cochlea_L": false,
+      "Cochlea_R": false,
+      "Esophagus": false,
+      "Eye_L": true,
+      "Eye_R": true,
+      "Glnd_Submand_L": false,
+      "Glnd_Submand_R": false,
+      "Glnd_Thyroid": false,
+      "Lens_L": true,
+      "Lens_R": true,
+      "OpticChiasm_PRV3": true,
+      "OpticNrv_PRV03_L": true,
+      "OpticNrv_PRV03_R": true,
+      "Parotid_L": false,
+      "Parotid_R": false,
+      "SpinalCord_PRV05": true
+    }
+  }
+}

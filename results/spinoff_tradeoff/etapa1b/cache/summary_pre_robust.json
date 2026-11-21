@@ -1,0 +1,893 @@
+{
+  "etapa": "spinoff_tradeoff_etapa1b",
+  "espacio": "real en % Rx_High del protocolo (dosis NPZ x D95_abs/Rx); predicho A4 renormalizado a D95(PTV_High)=100%",
+  "sanity_reescalado": {
+    "n": 432,
+    "discrepantes_gt_0.5pp_vs_qa_gate": [],
+    "max_abs_dif_pp": 0.005,
+    "max_abs_D95_normalizado_menos_100": 0.0
+  },
+  "uso_del_test": "Sin metricas agregadas de desempeno sobre test (ni MAE ni mean|dV| por banda); solo estructura del residual en val+test.",
+  "sitios": {
+    "Prostata": {
+      "tipo": "manual",
+      "n_val_test": 49,
+      "n_variables": 31,
+      "variables_descartadas": {
+        "OAR|FemoralHead_prox|dV_alta_80_100": "sin_varianza",
+        "OAR|FemoralHead_dist|dV_alta_80_100": "sin_varianza"
+      },
+      "retenidos_nula_bloques": 3,
+      "retenidos_nula_columnas_etapa1": 5,
+      "autovalores_top6": [
+        7.81,
+        5.59,
+        4.4,
+        3.08,
+        2.13,
+        1.58
+      ],
+      "nula_bloques_p95_top6": [
+        7.42,
+        5.44,
+        4.01,
+        3.28,
+        2.62,
+        2.17
+      ],
+      "estabilidad_cos_mediana": [
+        0.94,
+        0.86,
+        0.83
+      ],
+      "carga_por_bloque_componente": [
+        {
+          "comp": 1,
+          "suma_OAR": -5.332298409580828,
+          "media_OAR": -0.33326865059880173,
+          "suma_PTV": 1.0898141090170173,
+          "media_PTV": 0.3632713696723391,
+          "suma_HOT": -0.35099433326169366,
+          "media_HOT": -0.17549716663084683,
+          "suma_FALL": -6.067358843374759,
+          "media_FALL": -0.7584198554218449,
+          "mezcla_signos_opuestos": true,
+          "carga_dD95": 0.5900324126546713
+        },
+        {
+          "comp": 2,
+          "suma_OAR": -1.764917081947819,
+          "media_OAR": -0.11030731762173868,
+          "suma_PTV": 1.2605110471589949,
+          "media_PTV": 0.42017034905299827,
+          "suma_HOT": -0.10392731695990173,
+          "media_HOT": -0.05196365847995087,
+          "suma_FALL": 2.2690499984997676,
+          "media_FALL": 0.28363124981247095,
+          "mezcla_signos_opuestos": false,
+          "carga_dD95": 0.29082183821553953
+        },
+        {
+          "comp": 3,
+          "suma_OAR": -0.4594608461095858,
+          "media_OAR": -0.02871630288184905,
+          "suma_PTV": -1.1018139002742742,
+          "media_PTV": -0.3672713000914247,
+          "suma_HOT": -0.23521699860599016,
+          "media_HOT": -0.11760849930299508,
+          "suma_FALL": -1.3638972940678757,
+          "media_FALL": -0.17048716175848447,
+          "mezcla_signos_opuestos": false,
+          "carga_dD95": -0.48379816652605867
+        }
+      ],
+      "corr_score_componente_vs_dD95": [
+        {
+          "comp": 1,
+          "r": 0.5900324126546711,
+          "p_perm": 0.0001999600079984003,
+          "ci95": [
+            0.3415901769091004,
+            0.7847302431784613
+          ],
+          "n": 49
+        },
+        {
+          "comp": 2,
+          "r": 0.2908218382155396,
+          "p_perm": 0.04439112177564487,
+          "ci95": [
+            -0.03953397964071637,
+            0.5684755060900422
+          ],
+          "n": 49
+        },
+        {
+          "comp": 3,
+          "r": -0.48379816652605856,
+          "p_perm": 0.0005998800239952009,
+          "ci95": [
+            -0.6758337059650056,
+            -0.21708061091817196
+          ],
+          "n": 49
+        }
+      ],
+      "acoplamiento_bloques": {
+        "OAR~PTV": {
+          "r": -0.34,
+          "ic95": [
+            -0.56,
+            -0.02
+          ],
+          "p_perm": 0.0174
+        },
+        "OAR~HOT": {
+          "r": 0.15,
+          "ic95": [
+            -0.15,
+            0.38
+          ],
+          "p_perm": 0.322
+        },
+        "OAR~FALL": {
+          "r": 0.1,
+          "ic95": [
+            -0.11,
+            0.33
+          ],
+          "p_perm": 0.5053
+        },
+        "PTV~HOT": {
+          "r": -0.04,
+          "ic95": [
+            -0.39,
+            0.25
+          ],
+          "p_perm": 0.776
+        },
+        "PTV~FALL": {
+          "r": -0.22,
+          "ic95": [
+            -0.53,
+            0.03
+          ],
+          "p_perm": 0.1282
+        },
+        "HOT~FALL": {
+          "r": 0.23,
+          "ic95": [
+            -0.04,
+            0.58
+          ],
+          "p_perm": 0.0944
+        }
+      },
+      "HOT~PTV": {
+        "r": -0.04,
+        "ic95": [
+          -0.39,
+          0.25
+        ]
+      },
+      "prueba_directa_dD95": {
+        "n_pruebas": 11,
+        "n_significativas_holm": 1,
+        "antagonicas_sig": [
+          "Rectum|dDmean"
+        ],
+        "sinergicas_sig": [],
+        "bloques": [
+          {
+            "prueba": "score_OAR",
+            "r_calidad": -0.253,
+            "ic95_lo": -0.539,
+            "ic95_hi": 0.062,
+            "p_holm": 0.518,
+            "significativo": false
+          },
+          {
+            "prueba": "score_HOT",
+            "r_calidad": -0.15,
+            "ic95_lo": -0.47,
+            "ic95_hi": 0.151,
+            "p_holm": 1.0,
+            "significativo": false
+          },
+          {
+            "prueba": "score_FALL",
+            "r_calidad": -0.278,
+            "ic95_lo": -0.531,
+            "ic95_hi": -0.053,
+            "p_holm": 0.462,
+            "significativo": false
+          }
+        ]
+      },
+      "anatomia_dD95": {
+        "todos_los_elegibles": {
+          "n": 138,
+          "n_descriptores": 24,
+          "dD95_media": -1.4090277630349863,
+          "dD95_sd": 1.843625666453631,
+          "r2_loo": 0.5175402858388359,
+          "r2_ic95": [
+            0.3403210993987475,
+            0.6160033591602603
+          ],
+          "r2_p_perm": 0.009900990099009901,
+          "corr_vecinos": {
+            "r": 0.3465355017124928,
+            "p_perm": 0.0001999600079984003,
+            "ci95": [
+              0.22749649185501794,
+              0.4675487040267904
+            ],
+            "n": 138
+          },
+          "spearman_vecinos": 0.38995772720085403
+        },
+        "val+test": {
+          "n": 49,
+          "n_descriptores": 24,
+          "dD95_media": -1.501426073969627,
+          "dD95_sd": 1.7855111239155381,
+          "r2_loo": 0.159506821327267,
+          "r2_ic95": [
+            -0.6562488524836393,
+            0.5226745571496014
+          ],
+          "r2_p_perm": 0.009900990099009901,
+          "corr_vecinos": {
+            "r": 0.31261410049047145,
+            "p_perm": 0.02539492101579684,
+            "ci95": [
+              0.09362570583626406,
+              0.5338460977490765
+            ],
+            "n": 49
+          },
+          "spearman_vecinos": 0.3467013627656959
+        }
+      },
+      "vs_etapa1": {
+        "n_vars_comunes": 29,
+        "cos": [
+          [
+            0.455381956786471,
+            0.7472625635527328,
+            0.395255379150926,
+            0.15126842937141324
+          ],
+          [
+            0.6613670324605252,
+            0.5382123040766474,
+            0.41574426623605054,
+            0.15706780838870693
+          ],
+          [
+            0.42039624112600293,
+            0.28246831688810103,
+            0.7326968030554772,
+            0.22145574573468033
+          ]
+        ],
+        "comp_1b": [
+          1,
+          2,
+          3
+        ],
+        "comp_etapa1": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "eje_derrame_etapa1": 1
+      },
+      "replica": {
+        "k3": {
+          "n": 138,
+          "retenidos_bloques": 3,
+          "cos_vs_residual_top3": [
+            0.69,
+            0.65,
+            0.71
+          ]
+        },
+        "k5": {
+          "n": 138,
+          "retenidos_bloques": 2,
+          "cos_vs_residual_top3": [
+            0.8,
+            0.77,
+            0.63
+          ]
+        }
+      },
+      "lectura_predeclarada": [
+        "dD95 antagonico con OARs (1 pruebas sig., Holm) y R\u00b2 anatomico 0.52>=0.2: concesion de cobertura = compromiso real, en parte predecible desde la anatomia -> candidato a salida extra del modelo principal / modelo clasico"
+      ]
+    },
+    "Pelvis": {
+      "tipo": "manual",
+      "n_val_test": 48,
+      "n_variables": 27,
+      "variables_descartadas": {},
+      "retenidos_nula_bloques": 1,
+      "retenidos_nula_columnas_etapa1": 2,
+      "autovalores_top6": [
+        15.22,
+        3.49,
+        2.15,
+        1.76,
+        0.96,
+        0.86
+      ],
+      "nula_bloques_p95_top6": [
+        8.94,
+        6.25,
+        3.6,
+        2.7,
+        2.17,
+        1.76
+      ],
+      "estabilidad_cos_mediana": [
+        1.0
+      ],
+      "carga_por_bloque_componente": [
+        {
+          "comp": 1,
+          "suma_OAR": 6.795073972081808,
+          "media_OAR": 0.5662561643401506,
+          "suma_PTV": 1.2546547586923458,
+          "media_PTV": 0.4182182528974486,
+          "suma_HOT": 1.6904276401206926,
+          "media_HOT": 0.8452138200603463,
+          "suma_FALL": 7.436155911544215,
+          "media_FALL": 0.9295194889430267,
+          "mezcla_signos_opuestos": false,
+          "carga_dD95": -0.43893805433495126
+        }
+      ],
+      "corr_score_componente_vs_dD95": [
+        {
+          "comp": 1,
+          "r": -0.4389380543349511,
+          "p_perm": 0.0025994801039792037,
+          "ci95": [
+            -0.5686806111315602,
+            -0.2764764702792706
+          ],
+          "n": 48
+        }
+      ],
+      "acoplamiento_bloques": {
+        "OAR~PTV": {
+          "r": 0.55,
+          "ic95": [
+            -0.05,
+            0.77
+          ],
+          "p_perm": 0.0003
+        },
+        "OAR~HOT": {
+          "r": 0.59,
+          "ic95": [
+            0.09,
+            0.77
+          ],
+          "p_perm": 0.0001
+        },
+        "OAR~FALL": {
+          "r": 0.8,
+          "ic95": [
+            0.69,
+            0.89
+          ],
+          "p_perm": 0.0001
+        },
+        "PTV~HOT": {
+          "r": 0.94,
+          "ic95": [
+            0.86,
+            0.98
+          ],
+          "p_perm": 0.0001
+        },
+        "PTV~FALL": {
+          "r": 0.76,
+          "ic95": [
+            0.28,
+            0.87
+          ],
+          "p_perm": 0.0001
+        },
+        "HOT~FALL": {
+          "r": 0.84,
+          "ic95": [
+            0.45,
+            0.93
+          ],
+          "p_perm": 0.0001
+        }
+      },
+      "HOT~PTV": {
+        "r": 0.94,
+        "ic95": [
+          0.86,
+          0.98
+        ]
+      },
+      "prueba_directa_dD95": {
+        "n_pruebas": 9,
+        "n_significativas_holm": 4,
+        "antagonicas_sig": [
+          "Bowel_Small|dV_media_40_80",
+          "Bowel_Small|dDmean",
+          "score_OAR",
+          "score_FALL"
+        ],
+        "sinergicas_sig": [],
+        "bloques": [
+          {
+            "prueba": "score_OAR",
+            "r_calidad": -0.477,
+            "ic95_lo": -0.61,
+            "ic95_hi": -0.31,
+            "p_holm": 0.009,
+            "significativo": true
+          },
+          {
+            "prueba": "score_HOT",
+            "r_calidad": -0.18,
+            "ic95_lo": -0.36,
+            "ic95_hi": 0.153,
+            "p_holm": 0.355,
+            "significativo": false
+          },
+          {
+            "prueba": "score_FALL",
+            "r_calidad": -0.41,
+            "ic95_lo": -0.554,
+            "ic95_hi": -0.235,
+            "p_holm": 0.029,
+            "significativo": true
+          }
+        ]
+      },
+      "anatomia_dD95": {
+        "todos_los_elegibles": {
+          "n": 138,
+          "n_descriptores": 23,
+          "dD95_media": -0.49493054376132245,
+          "dD95_sd": 0.7661551831447061,
+          "r2_loo": -0.016727935668138905,
+          "r2_ic95": [
+            -0.05528385866325122,
+            -0.016074076227548906
+          ],
+          "r2_p_perm": 0.22772277227722773,
+          "corr_vecinos": {
+            "r": 0.01266859489321251,
+            "p_perm": 0.8804239152169566,
+            "ci95": [
+              -0.16727160430460938,
+              0.18746116425660314
+            ],
+            "n": 138
+          },
+          "spearman_vecinos": 0.013404507439858281
+        },
+        "val+test": {
+          "n": 48,
+          "n_descriptores": 23,
+          "dD95_media": -0.5400091807047526,
+          "dD95_sd": 0.6999649700257541,
+          "r2_loo": -0.04549853711423402,
+          "r2_ic95": [
+            -0.17438604452027456,
+            -0.0447564563872772
+          ],
+          "r2_p_perm": 0.06930693069306931,
+          "corr_vecinos": {
+            "r": -0.1699958927103886,
+            "p_perm": 0.2501499700059988,
+            "ci95": [
+              -0.3879129591978957,
+              0.1155258351746784
+            ],
+            "n": 48
+          },
+          "spearman_vecinos": -0.116804168475901
+        }
+      },
+      "vs_etapa1": {
+        "n_vars_comunes": 25,
+        "cos": [
+          [
+            0.9968680587894518,
+            0.07559468129791562
+          ]
+        ],
+        "comp_1b": [
+          1
+        ],
+        "comp_etapa1": [
+          1,
+          2
+        ],
+        "eje_derrame_etapa1": 1
+      },
+      "replica": {
+        "k3": {
+          "n": 138,
+          "retenidos_bloques": 2,
+          "cos_vs_residual_top3": [
+            0.68
+          ]
+        },
+        "k5": {
+          "n": 138,
+          "retenidos_bloques": 1,
+          "cos_vs_residual_top3": [
+            0.68
+          ]
+        }
+      },
+      "lectura_predeclarada": [
+        "dD95 antagonico con OARs (3 pruebas sig., Holm) y R\u00b2 anatomico -0.02<0.2: compromiso real pero de criterio del planificador -> candidato a coordenada de preferencia",
+        "Eje de derrame de Pelvis (Etapa 1 comp 1): coseno max 1.00 con comp 1 de 1b; sinergico=True; sin acoplamiento con dD95=False; no cumple el patron completo"
+      ]
+    },
+    "CyC": {
+      "tipo": "RapidPlan (contraste)",
+      "n_val_test": 55,
+      "n_variables": 127,
+      "variables_descartadas": {
+        "OAR|Eye_dist|dV_alta_80_100": "sin_varianza",
+        "OAR|Lens_prox|dV_alta_80_100": "sin_varianza",
+        "OAR|Lens_dist|dV_media_40_80": "sin_varianza",
+        "OAR|Lens_dist|dV_alta_80_100": "sin_varianza"
+      },
+      "retenidos_nula_bloques": 4,
+      "retenidos_nula_columnas_etapa1": 8,
+      "autovalores_top6": [
+        25.91,
+        15.4,
+        11.73,
+        10.67,
+        7.08,
+        5.83
+      ],
+      "nula_bloques_p95_top6": [
+        24.65,
+        15.39,
+        10.11,
+        8.54,
+        7.32,
+        6.47
+      ],
+      "estabilidad_cos_mediana": [
+        0.9,
+        0.69,
+        0.77,
+        0.71
+      ],
+      "carga_por_bloque_componente": [
+        {
+          "comp": 1,
+          "suma_OAR": 31.36182717778547,
+          "media_OAR": 0.3074688938998576,
+          "suma_PTV": -2.3403789822856886,
+          "media_PTV": -0.21276172566233534,
+          "suma_HOT": 0.36157283275551744,
+          "media_HOT": 0.18078641637775872,
+          "suma_FALL": 0.9905984145478902,
+          "media_FALL": 0.12382480181848626,
+          "mezcla_signos_opuestos": true,
+          "carga_dD95": -0.7730385960950484
+        },
+        {
+          "comp": 2,
+          "suma_OAR": -5.810186858365278,
+          "media_OAR": -0.05696261625848311,
+          "suma_PTV": 1.3771998830913055,
+          "media_PTV": 0.12519998937193685,
+          "suma_HOT": -0.2808682970379731,
+          "media_HOT": -0.14043414851898656,
+          "suma_FALL": 0.6533213918804603,
+          "media_FALL": 0.08166517398505754,
+          "mezcla_signos_opuestos": false,
+          "carga_dD95": 0.5189091978882471
+        },
+        {
+          "comp": 3,
+          "suma_OAR": 12.774063629457338,
+          "media_OAR": 0.12523591793585637,
+          "suma_PTV": 1.1983283198520998,
+          "media_PTV": 0.1089389381683727,
+          "suma_HOT": 0.9754968884019846,
+          "media_HOT": 0.4877484442009923,
+          "suma_FALL": 5.370947451268511,
+          "media_FALL": 0.6713684314085638,
+          "mezcla_signos_opuestos": false,
+          "carga_dD95": 0.018620362649328665
+        },
+        {
+          "comp": 4,
+          "suma_OAR": -4.653267338489574,
+          "media_OAR": -0.04562026802440757,
+          "suma_PTV": 0.48353181539879786,
+          "media_PTV": 0.04395743776352707,
+          "suma_HOT": -0.1441352489462402,
+          "media_HOT": -0.0720676244731201,
+          "suma_FALL": 2.456168664569608,
+          "media_FALL": 0.307021083071201,
+          "mezcla_signos_opuestos": false,
+          "carga_dD95": -0.08310606091252007
+        }
+      ],
+      "corr_score_componente_vs_dD95": [
+        {
+          "comp": 1,
+          "r": -0.7730385960950489,
+          "p_perm": 0.0001999600079984003,
+          "ci95": [
+            -0.966642104843199,
+            -0.4074585341154605
+          ],
+          "n": 55
+        },
+        {
+          "comp": 2,
+          "r": 0.5189091978882469,
+          "p_perm": 0.020995800839832032,
+          "ci95": [
+            -0.6215587327761724,
+            0.9307249089670314
+          ],
+          "n": 55
+        },
+        {
+          "comp": 3,
+          "r": 0.018620362649328613,
+          "p_perm": 0.874625074985003,
+          "ci95": [
+            -0.23882341464327267,
+            0.12734216341560686
+          ],
+          "n": 55
+        },
+        {
+          "comp": 4,
+          "r": -0.08310606091252006,
+          "p_perm": 0.5220955808838232,
+          "ci95": [
+            -0.28371908477955055,
+            0.3030854574582725
+          ],
+          "n": 55
+        }
+      ],
+      "acoplamiento_bloques": {
+        "OAR~PTV": {
+          "r": -0.4,
+          "ic95": [
+            -0.6,
+            -0.19
+          ],
+          "p_perm": 0.0047
+        },
+        "OAR~HOT": {
+          "r": 0.15,
+          "ic95": [
+            -0.35,
+            0.6
+          ],
+          "p_perm": 0.1554
+        },
+        "OAR~FALL": {
+          "r": 0.09,
+          "ic95": [
+            -0.23,
+            0.27
+          ],
+          "p_perm": 0.5235
+        },
+        "PTV~HOT": {
+          "r": 0.17,
+          "ic95": [
+            -0.37,
+            0.54
+          ],
+          "p_perm": 0.2071
+        },
+        "PTV~FALL": {
+          "r": 0.04,
+          "ic95": [
+            -0.24,
+            0.31
+          ],
+          "p_perm": 0.7899
+        },
+        "HOT~FALL": {
+          "r": 0.2,
+          "ic95": [
+            -0.33,
+            0.5
+          ],
+          "p_perm": 0.1348
+        }
+      },
+      "HOT~PTV": {
+        "r": 0.17,
+        "ic95": [
+          -0.37,
+          0.54
+        ]
+      },
+      "prueba_directa_dD95": {
+        "n_pruebas": 48,
+        "n_significativas_holm": 4,
+        "antagonicas_sig": [
+          "Brainstem_PRV05|dV_media_40_80",
+          "Brainstem_PRV05|dDmean",
+          "Cochlea_dist|dV_media_40_80",
+          "OpticNrv_PRV03_dist|dDmean"
+        ],
+        "sinergicas_sig": [],
+        "bloques": [
+          {
+            "prueba": "score_OAR",
+            "r_calidad": -0.673,
+            "ic95_lo": -0.948,
+            "ic95_hi": -0.311,
+            "p_holm": 0.502,
+            "significativo": false
+          },
+          {
+            "prueba": "score_HOT",
+            "r_calidad": -0.26,
+            "ic95_lo": -0.592,
+            "ic95_hi": -0.122,
+            "p_holm": 1.0,
+            "significativo": false
+          },
+          {
+            "prueba": "score_FALL",
+            "r_calidad": -0.064,
+            "ic95_lo": -0.229,
+            "ic95_hi": 0.141,
+            "p_holm": 1.0,
+            "significativo": false
+          }
+        ]
+      },
+      "anatomia_dD95": {
+        "todos_los_elegibles": {
+          "n": 156,
+          "n_descriptores": 269,
+          "dD95_media": -2.2796460665189304,
+          "dD95_sd": 3.603152233803645,
+          "r2_loo": -38.41836274660734,
+          "r2_ic95": [
+            -177.28384066910135,
+            -0.3928761667603757
+          ],
+          "r2_p_perm": 0.9207920792079208,
+          "corr_vecinos": {
+            "r": 0.6691412670784076,
+            "p_perm": 0.0001999600079984003,
+            "ci95": [
+              0.42969454323189576,
+              0.8615467316539904
+            ],
+            "n": 156
+          },
+          "spearman_vecinos": 0.3266554398188498
+        },
+        "val+test": {
+          "n": 55,
+          "n_descriptores": 269,
+          "dD95_media": -2.1699720902876423,
+          "dD95_sd": 3.7121913181694075,
+          "r2_loo": -12.407645289755711,
+          "r2_ic95": [
+            -140.217556322789,
+            -0.05879844986304017
+          ],
+          "r2_p_perm": 0.39603960396039606,
+          "corr_vecinos": {
+            "r": 0.5317783108280566,
+            "p_perm": 0.01899620075984803,
+            "ci95": [
+              0.16199057104122522,
+              0.837018880114105
+            ],
+            "n": 55
+          },
+          "spearman_vecinos": 0.4012987012987014
+        }
+      },
+      "vs_etapa1": {
+        "n_vars_comunes": 125,
+        "cos": [
+          [
+            0.07107910438686228,
+            0.7938634426989213,
+            0.2720842409977396,
+            0.1327859490674116
+          ],
+          [
+            0.07945902013503506,
+            0.5642002574026698,
+            0.4445955005842622,
+            0.05791613781236843
+          ],
+          [
+            0.7161815877191162,
+            0.093568236981758,
+            0.0024619820629970955,
+            0.511110555104039
+          ],
+          [
+            0.41959055812092844,
+            0.04955777531379097,
+            0.033650812243611196,
+            0.7829367524213782
+          ]
+        ],
+        "comp_1b": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "comp_etapa1": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "eje_derrame_etapa1": 1
+      },
+      "replica": {
+        "k3": {
+          "n": 156,
+          "retenidos_bloques": 2,
+          "cos_vs_residual_top3": [
+            0.59,
+            0.52,
+            0.43,
+            0.21
+          ]
+        },
+        "k5": {
+          "n": 156,
+          "retenidos_bloques": 2,
+          "cos_vs_residual_top3": [
+            0.64,
+            0.47,
+            0.44,
+            0.24
+          ]
+        }
+      },
+      "lectura_predeclarada": [
+        "dD95 antagonico con OARs (4 pruebas sig., Holm) y R\u00b2 anatomico -38.42<0.2: compromiso real pero de criterio del planificador -> candidato a coordenada de preferencia"
+      ]
+    }
+  },
+  "decisiones": [
+    "Predicho: la dosis predicha no estaba cacheada en la Etapa 1; se re-infirio en CPU solo val+test (152) para el hotspot fuera de PTV; verificado contra el factor de escala y variables cacheadas de la Etapa 1 (campo pred_check en cache).",
+    "Hotspot redefinido fuera de los PTV: D0.035cm3 de (BODY - union de PTV) y volumen >107% fuera de PTV, ambos en real y predicho.",
+    "Real = dosis NPZ x (D95_abs_Gy/Rx_High_Gy) de la metadata; sanity contra paso3_qa_gate.csv y recalculo de D95.",
+    "Nula por bloques: cada bloque (OAR, PTV, HOT, FALL) se permuta entero entre pacientes con permutacion propia; el acoplamiento usa permutacion del score de un bloque (equivalente). Se reporta tambien el n retenido con la nula por columnas de la Etapa 1.",
+    "Prueba directa: familia por sitio = (dV media + dDmean) de cada slot OAR + score de OAR/HOT/FALL; p por permutacion (10000), correccion Holm; significativo = p_holm<0.05 e IC95 bootstrap sin 0. Signo en calidad: r<0 antagonico.",
+    "Lectura: \"antagonico con OARs\" = alguna prueba OAR (slot o score) significativa con r<0 tras Holm; R\u00b2 anatomico de dD95 evaluado con TODOS los elegibles (se reporta tambien val+test).",
+    "Carga por bloque = suma (y media) de loadings corr(score,var) con signo de calidad; \"mezcla\" si hay bloques con media > +0.15 y otros < -0.15.",
+    "Eje de derrame de Pelvis = componente de la Etapa 1 con mayor |loading| medio sobre el bloque de caida de dosis (FALL); sobrevive si coseno>0.7, OAR y FALL con igual signo de calidad y sin acoplamiento con dD95.",
+    "Comparacion con Etapa 1 en las variables comunes; el hotspot cambio de definicion (HOT|D0035_out) y no entra en el coseno."
+  ]
+}
