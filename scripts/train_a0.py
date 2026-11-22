@@ -32,6 +32,12 @@ def build_dm(cfg):
                             batch_size=d.batch_size, num_workers=d.num_workers, pin_memory=d.pin_memory,
                             pad_hw=frame_from_cfg(d), fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
                             ptv_ref=d.get('ptv_ref', 'union'), density_dir=ROOT / d.density_dir)
+    if d.get('datamodule', 'a0') == 'f4q':  # Fase 4 cuantílica: A4 + ptv_mask (unión PTV ∩ BODY)
+        from src.datamodules.f4q_datamodule import F4QDataModule
+        return F4QDataModule(ROOT / d.npz_dir, ROOT / d.splits_file, ROOT / d.harmonization_dir,
+                             batch_size=d.batch_size, num_workers=d.num_workers, pin_memory=d.pin_memory,
+                             pad_hw=frame_from_cfg(d), fill_sin_goal=d.fill_sin_goal, goal_mode=d.goal_mode,
+                             ptv_ref=d.get('ptv_ref', 'union'))
     if d.get('datamodule', 'a0') == 'f4':   # Fase 4: A4 + bitmask de estructuras ∩ BODY para la loss de momentos
         from src.datamodules.f4_datamodule import F4DataModule
         return F4DataModule(ROOT / d.npz_dir, ROOT / d.splits_file, ROOT / d.harmonization_dir,
@@ -101,6 +107,9 @@ def main():
     if cfg.loss.name == 'mae_dvhmoment':
         from src.models.f4_module import F4Module
         model = F4Module(cfg)
+    elif cfg.loss.name == 'pinball_body':
+        from src.models.f4q_module import F4QModule
+        model = F4QModule(cfg)
     else:
         model = A0Module(cfg)
 
@@ -172,6 +181,10 @@ def main():
         _torch_load = torch.load
         torch.load = lambda *a, **k: _torch_load(*a, **{**k, 'weights_only': False})
     print('[resume]', resume or 'desde cero')
+    if not resume and cfg.get('init') and cfg.init.get('ckpt'):
+        # Warm-start (fine-tune): SOLO pesos del ckpt de la vara; optimizer/scheduler quedan nuevos (LR/horizonte propios del cfg).
+        sd = torch.load(ROOT / cfg.init.ckpt, map_location='cpu', weights_only=False)['state_dict']
+        print('[init] warm-start desde', cfg.init.ckpt, '->', model.load_state_dict(sd, strict=True), flush=True)
     trainer.fit(model, datamodule=dm, ckpt_path=resume)
     print('best:', trainer.checkpoint_callback.best_model_path, trainer.checkpoint_callback.best_model_score)
 

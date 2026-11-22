@@ -36,7 +36,7 @@ def crit(df):
 def main(exp):
     out = ROOT / 'results' / exp
     mon = best_k(exp)
-    res = {ep: crit(pd.read_csv(out / f'ckpt_ep{ep}' / 'metrics.csv')) for ep in sorted(mon)}
+    res = {ep: crit(pd.read_csv(out / f'ckpt_ep{ep:03d}' / 'metrics.csv')) for ep in sorted(mon)}
     best_mon = min(mon, key=mon.get)
     best_dvh = min(res, key=lambda e: res[e][0])
     lines = ['== criterio pooled OAR banda media 40-80 (menor = mejor), val n=65; monitor = val/loss ==']
@@ -47,11 +47,11 @@ def main(exp):
     lines.append(f'  -> elegido (mejor-DVH sobre top-3): ep{best_dvh}; mejor-por-monitor: ep{best_mon}; '
                  f'gap pooled (monitor - DVH) = {res[best_mon][0] - res[best_dvh][0]:+.3f}'
                  + ('  (coinciden)' if best_mon == best_dvh else '  (SE SEPARAN: la loss desacopla MAE/loss de DVH)'))
-    src = out / f'ckpt_ep{best_dvh}'
+    src = out / f'ckpt_ep{best_dvh:03d}'
     for f in FILES:
         shutil.copy(src / f, out / f)
     sj = json.loads((out / 'summary.json').read_text(encoding='utf-8'))
-    sj['seleccion_fase4'] = {'experimento': exp, 'ckpt_elegido': f'epoch={best_dvh}.ckpt', 'ckpt_mejor_monitor': f'epoch={best_mon}.ckpt',
+    sj['seleccion_fase4'] = {'experimento': exp, 'ckpt_elegido': f'epoch={best_dvh:03d}.ckpt', 'ckpt_mejor_monitor': f'epoch={best_mon:03d}.ckpt',
                              'regla': 'top-3 por val/loss (MAE+λ·DVH); elegido = menor mean|ΔV| pooled OAR_all banda media 40-80 en val (n=65)',
                              'val_loss_por_ckpt': {str(e): mon[e] for e in mon},
                              'pooled_oar_media_por_ckpt': {str(e): res[e][0] for e in res},
@@ -59,7 +59,7 @@ def main(exp):
     (out / 'summary.json').write_text(json.dumps(sj, indent=2), encoding='utf-8')
     (out / 'seleccion.txt').write_text('\n'.join(lines) + '\n', encoding='utf-8')
     print('\n'.join(lines))
-    print(f'CHOSEN=checkpoints/{exp}/epoch={best_dvh}.ckpt')
+    print(f'CHOSEN=checkpoints/{exp}/epoch={best_dvh:03d}.ckpt')
 
 
 if __name__ == '__main__':

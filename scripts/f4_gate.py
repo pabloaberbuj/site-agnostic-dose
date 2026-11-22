@@ -4,6 +4,7 @@ Vigilante de la época 40 (pre-registrado): exp_f4_001_dvhmoment_sp_lambda0p3 (l
   val/mae(ep40) >  GATE  -> cierra la cadena cuadrática (tarea sa_f4 + procesos) y lanza el sweep L1 (scripts/run_f4_l1.sh, tarea sa_f4_l1).
 GATE = 6.2 = 1.4 x val/mae de la vara exp_a4_003 en la época 40 (4.44). Fijado antes de mirar. Registra en logs/f4_gate.log y results/<exp>/gate_epoca40.txt.
 """
+import argparse
 import glob
 import subprocess
 import time
@@ -15,6 +16,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 EXP = 'exp_f4_001_dvhmoment_sp_lambda0p3'
 EPOCH, GATE, VARA_EP40 = 40, 6.2, 4.44
+FAIL_ACTION = 'launch_l1'   # 'launch_l1' (gate de la cuadrática) | 'stop' (gate de L1: solo cierra la cadena, no lanza nada)
+CHAIN, TASK = 'run_f4', 'sa_f4'
 LOG = ROOT / 'logs' / 'f4_gate.log'
 
 
@@ -25,8 +28,8 @@ def log(m):
         f.write(line + '\n')
 
 
-def val_mae_ep():
-    for f in sorted(glob.glob(str(ROOT / 'lightning_logs' / EXP / 'version_*' / 'metrics.csv'))):
+def val_mae_ep(exp):
+    for f in sorted(glob.glob(str(ROOT / 'lightning_logs' / exp / 'version_*' / 'metrics.csv'))):
         try:
             d = pd.read_csv(f)
         except Exception:
@@ -42,23 +45,42 @@ def ps(cmd):
 
 
 def main():
-    log(f'vigilante activo: gate val/mae(ep{EPOCH}) <= {GATE} (vara {VARA_EP40}) en {EXP}')
-    while (v := val_mae_ep()) is None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--exp', default=EXP)
+    ap.add_argument('--chain', default=CHAIN, help='nombre del run_*.sh de la cadena, sin .sh')
+    ap.add_argument('--task', default=TASK, help='tarea programada de la cadena')
+    ap.add_argument('--fail-action', default=FAIL_ACTION, choices=['launch_l1', 'stop', 'warmstart'])
+    ap.add_argument('--gate', type=float, default=GATE)
+    a = ap.parse_args()
+    exp, gate = a.exp, a.gate
+    log(f'vigilante activo: gate val/mae(ep{EPOCH}) <= {gate} (vara {VARA_EP40}) en {exp} | si falla: {a.fail_action}')
+    while (v := val_mae_ep(exp)) is None:
         time.sleep(60)
-    ok = v <= GATE
-    txt = (f'val/mae ep{EPOCH} = {v:.3f} | gate <= {GATE} (1.4x vara {VARA_EP40}) -> '
-           + ('PASA: sigue la cadena cuadrática (L1 no se lanza solo)' if ok else 'NO PASA: se cierra la cuadrática y se lanza el sweep L1'))
+    ok = v <= gate
+    if ok:
+        res = 'PASA: sigue la cadena (no se lanza nada más)'
+    elif a.fail_action == 'launch_l1':
+        res = 'NO PASA: se cierra la cadena y se lanza el sweep L1'
+    elif a.fail_action == 'warmstart':
+        res = 'NO PASA: from-scratch NO CONCLUIDO por convergencia lenta (no es resultado clinico); se cierra la cadena y se lanza el warm-start (docs/PROMPT_code_f4_dvhloss_warmstart.md)'
+    else:
+        res = 'NO PASA: se cierra la cadena (no se lanza nada más)'
+    txt = f'val/mae ep{EPOCH} = {v:.3f} | gate <= {gate} (1.4x vara {VARA_EP40}) -> {res}'
     log(txt)
-    (ROOT / 'results' / EXP).mkdir(parents=True, exist_ok=True)
-    (ROOT / 'results' / EXP / 'gate_epoca40.txt').write_text(txt + '\n', encoding='utf-8')
+    (ROOT / 'results' / exp).mkdir(parents=True, exist_ok=True)
+    (ROOT / 'results' / exp / 'gate_epoca40.txt').write_text(txt + chr(10), encoding='utf-8')
     if ok:
         return
-    log(ps("schtasks /end /tn sa_f4"))
+    log(ps(f'schtasks /end /tn {a.task}'))
     # primero el bash de la cadena (tiene el bucle de reintentos), después el entrenamiento y sus workers
-    log(ps("Get-CimInstance Win32_Process | ? { $_.CommandLine -match 'run_f4[.]sh' } | % { Stop-Process -Id $_.ProcessId -Force; 'bash '+$_.ProcessId }"))
-    log(ps("Get-CimInstance Win32_Process | ? { $_.CommandLine -match 'exp_f4_001|multiprocessing' -and $_.CommandLine -match 'site-agnostic-dose' } | % { Stop-Process -Id $_.ProcessId -Force; 'py '+$_.ProcessId }"))
-    time.sleep(15)
-    log(ps(f'powershell -NoProfile -File "{ROOT / "scripts" / "launch_task.ps1"}" -Name sa_f4_l1 -Cmd "bash scripts/run_f4_l1.sh >> logs/run_f4_l1.out 2>&1"'))
+    log(ps("Get-CimInstance Win32_Process | ? { $_.CommandLine -match '" + a.chain + "[.]sh' } | % { Stop-Process -Id $_.ProcessId -Force; 'bash '+$_.ProcessId }"))
+    log(ps("Get-CimInstance Win32_Process | ? { $_.CommandLine -match '" + exp.rsplit('_lambda', 1)[0] + "|multiprocessing' -and $_.CommandLine -match 'site-agnostic-dose' } | % { Stop-Process -Id $_.ProcessId -Force; 'py '+$_.ProcessId }"))
+    if a.fail_action == 'launch_l1':
+        time.sleep(15)
+        log(ps(f'powershell -NoProfile -File "{ROOT / "scripts" / "launch_task.ps1"}" -Name sa_f4_l1 -Cmd "TRAIN_W=2 bash scripts/run_f4_l1.sh >> logs/run_f4_l1.out 2>&1"'))
+    if a.fail_action == 'warmstart':
+        time.sleep(15)
+        log(ps(f'powershell -NoProfile -File "{ROOT / "scripts" / "launch_task.ps1"}" -Name sa_f4_ws -Cmd "TRAIN_W=2 bash scripts/run_f4_ws.sh >> logs/run_f4_ws.out 2>&1"'))
 
 
 if __name__ == '__main__':

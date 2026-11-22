@@ -64,5 +64,6 @@ class A0Module(pl.LightningModule):
         opt = torch.optim.AdamW(self.model.parameters(), lr=self.cfg.optimizer.lr,
                                 weight_decay=self.cfg.optimizer.weight_decay)
         # T_max fijo al horizonte completo, independiente de trainer.max_epochs (CHARTER §5)
-        sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=self.cfg.scheduler.max_epochs)
+        sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=self.cfg.scheduler.max_epochs,
+                                                           eta_min=float(self.cfg.scheduler.get('eta_min', 0.0)))
         return {'optimizer': opt, 'lr_scheduler': sched}

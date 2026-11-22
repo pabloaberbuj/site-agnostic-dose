@@ -1,0 +1,1 @@
+val/mae ep40 = 7.163 | gate <= 6.2 (1.4x vara 4.44) -> NO PASA: from-scratch NO CONCLUIDO por convergencia lenta (no es resultado clinico); se cierra la cadena y se lanza el warm-start (docs/PROMPT_code_f4_dvhloss_warmstart.md)

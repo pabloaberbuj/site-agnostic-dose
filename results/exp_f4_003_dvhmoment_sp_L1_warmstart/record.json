@@ -1,0 +1,121 @@
+{
+  "exp_id": "exp_f4_003_dvhmoment_sp_L1_warmstart",
+  "harmonization_hash": "7ab16f73fa632a3e",
+  "npz_dir": "C:\\Pablo\\Site Agnostic\\repo\\site-agnostic-dose\\..\\..\\data\\npz_v2b_body",
+  "splits_file": "C:\\Pablo\\Site Agnostic\\repo\\site-agnostic-dose\\data\\splits\\split_v2.json",
+  "pad_hw": {
+    "hw": [
+      176,
+      256
+    ],
+    "crop_body": true
+  },
+  "fill_sin_goal": 0,
+  "goal_mode": "uniform",
+  "ptv_ref": "union",
+  "n_channels": 7,
+  "conditional_diferidos_a_A3": [
+    "CyC/Eye_L: Dmax",
+    "CyC/Eye_L: Dmean",
+    "CyC/Eye_R: Dmax",
+    "CyC/Eye_R: Dmean",
+    "CyC/Glnd_Thyroid: V50.0Gy",
+    "CyC/Glnd_Thyroid: V60.0Gy",
+    "CyC/Parotid_L: Dmean",
+    "CyC/Parotid_L: V30.0Gy",
+    "CyC/Parotid_R: Dmean",
+    "CyC/Parotid_R: V30.0Gy"
+  ],
+  "psdm_role": "PTV_High",
+  "psdm_norm_cm": 15.0,
+  "psdm_pad": 1.0,
+  "f4_moments_p": [
+    1,
+    10
+  ],
+  "f4_ptv_p": [
+    1,
+    10
+  ],
+  "f4_oar_p": {
+    "maximos": 10,
+    "volumetrico": 10,
+    "medias": 1
+  },
+  "epoch_scale": {
+    "n_train_ref": 280,
+    "n_train": 280,
+    "ref_max_epochs": 50,
+    "ref_patience": 15,
+    "factor": 1.0
+  },
+  "cfg": {
+    "experiment": {
+      "name": "exp_f4_003_dvhmoment_sp_L1_warmstart",
+      "description": "F4 loss#1 momentos L1 serie/paralelo lambda=0.3 WARM-START desde la vara ep113; A4+U-Net2D+contenedor identicos a la vara",
+      "seed": 42
+    },
+    "data": {
+      "npz_dir": "../../data/npz_v2b_body",
+      "splits_file": "data/splits/split_v2.json",
+      "harmonization_dir": "data/harmonization",
+      "container": {
+        "hw": [
+          176,
+          256
+        ],
+        "crop_body": true
+      },
+      "datamodule": "f4",
+      "goal_mode": "uniform",
+      "fill_sin_goal": 0,
+      "ptv_ref": "union",
+      "batch_size": 1,
+      "num_workers": 2,
+      "pin_memory": true
+    },
+    "model": {
+      "arch": "unet2d",
+      "in_channels": 7,
+      "out_channels": 1,
+      "base_features": 16,
+      "depth": 4,
+      "upsample_mode": "bilinear",
+      "dropout": 0.0,
+      "slice_chunk": 32
+    },
+    "init": {
+      "ckpt": "checkpoints/exp_a4_003_unet2d_psdm_c176x256/epoch=113.ckpt"
+    },
+    "loss": {
+      "name": "mae_dvhmoment",
+      "lambda_dvh": 0.3,
+      "moment_form": "l1"
+    },
+    "optimizer": {
+      "name": "adamw",
+      "lr": 1e-05,
+      "weight_decay": 1e-05
+    },
+    "scheduler": {
+      "name": "cosine",
+      "max_epochs": 50,
+      "eta_min": 1e-06
+    },
+    "training": {
+      "max_epochs": 50,
+      "precision": "16-mixed",
+      "gradient_clip_val": 1.0,
+      "early_stopping_patience": 15,
+      "monitor_metric": "val/loss",
+      "monitor_mode": "min"
+    },
+    "epoch_scale": {
+      "n_train_ref": 280,
+      "n_train": 280,
+      "ref_max_epochs": 50,
+      "ref_patience": 15,
+      "factor": 1.0
+    }
+  }
+}

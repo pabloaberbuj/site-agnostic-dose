@@ -1,0 +1,65 @@
+# Fase 4, loss #1 L1, WARM-START (docs/PROMPT_code_f4_dvhloss_warmstart.md): pesos de la vara exp_a4_003 ep113, optimizer/scheduler nuevos, AdamW LR cosine 1e-5->1e-6, 50 epocas, patience 15 (nivel 2, anotado). lambda=0.3 L1 = el del from-scratch. Sin gate 1.4x-ep40. Resto = vara.
+# Spec: docs/PROMPT_code_f4_dvhloss_momentos.md. Monitor = val/loss (compuesta).
+
+experiment:
+  name: exp_f4_003_dvhmoment_sp_L1_warmstart
+  description: "F4 loss#1 momentos L1 serie/paralelo lambda=0.3 WARM-START desde la vara ep113; A4+U-Net2D+contenedor identicos a la vara"
+  seed: 42
+
+data:
+  npz_dir: "../../data/npz_v2b_body"
+  splits_file: "data/splits/split_v2.json"
+  harmonization_dir: "data/harmonization"
+  container:                 # crop centrado al bbox del BODY + pad a (H,W) fijo global
+    hw: [176, 256]
+    crop_body: true
+  datamodule: f4             # A4DataModule: A1 (6 canales) + Ch6 PSDM(PTV_High)
+  goal_mode: uniform
+  fill_sin_goal: 0   # fijo (ganador A1a)
+  ptv_ref: union             # EDT sobre uniÃ³n de PTVs; fallback 'high' si CyC sale raro
+  batch_size: 1
+  num_workers: 2             # 2 como en la Fase 2 (A4-2D viejo): con la VM apagada hay ~20 GB libres. No cambia resultados
+  pin_memory: true
+
+model:
+  arch: "unet2d"
+  in_channels: 7
+  out_channels: 1
+  base_features: 16
+  depth: 4
+  upsample_mode: "bilinear"
+  dropout: 0.0
+  slice_chunk: 32            # cortes por chunk con gradient checkpointing (numÃ©ricamente idÃ©ntico, menos VRAM)
+
+init:
+  ckpt: "checkpoints/exp_a4_003_unet2d_psdm_c176x256/epoch=113.ckpt"   # solo pesos
+
+loss:
+  name: "mae_dvhmoment"   # masked_mae_body + lambda_dvh * L_dvh (src/losses/dvh_moments.py)
+  lambda_dvh: 0.3
+  moment_form: "l1"       # |dM_p| (%Rx) en vez de (dM_p)^2
+
+optimizer:
+  name: "adamw"
+  lr: 1.0e-5
+  weight_decay: 1.0e-5
+
+scheduler:
+  name: "cosine"
+  max_epochs: 50             # horizonte explicito del fine-tune
+  eta_min: 1.0e-6
+
+training:
+  max_epochs: 50
+  precision: "16-mixed"
+  gradient_clip_val: 1.0
+  early_stopping_patience: 15
+  monitor_metric: "val/loss"
+  monitor_mode: "min"
+
+epoch_scale:               # no aplica (fine-tune de 50 ep); valores triviales para cumplir el assert de train_a0
+  n_train_ref: 280
+  n_train: 280
+  ref_max_epochs: 50
+  ref_patience: 15
+  factor: 1.0

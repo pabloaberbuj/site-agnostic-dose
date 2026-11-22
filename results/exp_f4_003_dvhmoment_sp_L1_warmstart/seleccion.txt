@@ -1,0 +1,5 @@
+== criterio pooled OAR banda media 40-80 (menor = mejor), val n=65; monitor = val/loss ==
+  ep3: val/loss 2.6255 | pooled 2.590 | CyC 2.29 Pelvis 3.29 Prostata 2.22
+  ep10: val/loss 2.6288 | pooled 2.549 | CyC 2.20 Pelvis 3.23 Prostata 2.26 [mejor-DVH]
+  ep17: val/loss 2.6183 | pooled 2.551 | CyC 2.24 Pelvis 3.18 Prostata 2.25 [mejor-monitor]
+  -> elegido (mejor-DVH sobre top-3): ep10; mejor-por-monitor: ep17; gap pooled (monitor - DVH) = +0.002  (SE SEPARAN: la loss desacopla MAE/loss de DVH)

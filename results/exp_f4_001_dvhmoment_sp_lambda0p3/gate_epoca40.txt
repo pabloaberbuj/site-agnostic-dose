@@ -1,0 +1,1 @@
+val/mae ep40 = 9.009 | gate <= 6.2 (1.4x vara 4.44) -> NO PASA: se cierra la cuadrática y se lanza el sweep L1
