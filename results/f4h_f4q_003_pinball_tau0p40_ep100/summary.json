@@ -1,0 +1,192 @@
+{
+  "harness_id": "f4h_f4q_003_pinball_tau0p40_ep100",
+  "split": "val",
+  "tau": 0.4,
+  "convencion": "calib = P(real > pred), esperado 1-tau; OVH-pct esperado 100*tau",
+  "fuente": {
+    "ckpt": "checkpoints/exp_f4q_003_pinball_tau0p40/epoch=100.ckpt",
+    "config": "configs/exp_f4q_003_pinball_tau0p40.yaml",
+    "pred_dir": null
+  },
+  "renorm": "none",
+  "k_ovh": 10,
+  "k_sens": [
+    5,
+    20
+  ],
+  "pool_referencia": "train+val (test sellado), sin el propio paciente",
+  "n_val_por_sitio": {
+    "CyC": 23,
+    "Pelvis": 21,
+    "Prostata": 21
+  },
+  "pool_n_por_sitio": {
+    "Prostata": 110,
+    "Pelvis": 111,
+    "CyC": 124
+  },
+  "puntos": {
+    "Dmean": "todos los OARs elegibles (presencia>=90%, con goal)",
+    "Dmax": "D0.035cc, solo roles con goal Dmax en la tabla; primario = Dmax si hay goal Dmax, si no Dmean"
+  },
+  "voxel_variantes": {
+    "tejido_sano": "BODY - union PTV",
+    "tejido_sano_dosis5": "idem y max(real,pred)>5%Rx",
+    "oars_union": "union de OARs elegibles - PTV"
+  },
+  "ic": "bootstrap percentil 1000, seed 42, sobre pacientes",
+  "calib_dvhpoint_por_sitio_primarios": [
+    {
+      "site": "CyC",
+      "mean": 0.4779576755947266,
+      "ci_lo": 0.38616629432319416,
+      "ci_hi": 0.5779072353292579,
+      "n": 23,
+      "metric": "calib_dvhpoint_primarios_sitio",
+      "target": 0.6
+    },
+    {
+      "site": "Pelvis",
+      "mean": 0.5238095238095237,
+      "ci_lo": 0.3650793650793651,
+      "ci_hi": 0.6666666666666666,
+      "n": 21,
+      "metric": "calib_dvhpoint_primarios_sitio",
+      "target": 0.6
+    },
+    {
+      "site": "Prostata",
+      "mean": 0.7261904761904762,
+      "ci_lo": 0.6190476190476191,
+      "ci_hi": 0.8095238095238095,
+      "n": 21,
+      "metric": "calib_dvhpoint_primarios_sitio",
+      "target": 0.6
+    }
+  ],
+  "calib_voxel": [
+    {
+      "site": "CyC",
+      "mean": 0.5084554613971577,
+      "ci_lo": 0.4290770100159562,
+      "ci_hi": 0.5892498833689395,
+      "n": 23,
+      "metric": "calib_voxel",
+      "variant": "tejido_sano",
+      "target": 0.6
+    },
+    {
+      "site": "Pelvis",
+      "mean": 0.6410903452664087,
+      "ci_lo": 0.5891216913198357,
+      "ci_hi": 0.6895138502576444,
+      "n": 21,
+      "metric": "calib_voxel",
+      "variant": "tejido_sano",
+      "target": 0.6
+    },
+    {
+      "site": "Prostata",
+      "mean": 0.5618638733657872,
+      "ci_lo": 0.4634914782685746,
+      "ci_hi": 0.654715140303,
+      "n": 21,
+      "metric": "calib_voxel",
+      "variant": "tejido_sano",
+      "target": 0.6
+    },
+    {
+      "site": "CyC",
+      "mean": 0.5433289687914394,
+      "ci_lo": 0.4980907162210738,
+      "ci_hi": 0.590426598650438,
+      "n": 23,
+      "metric": "calib_voxel",
+      "variant": "tejido_sano_dosis5",
+      "target": 0.6
+    },
+    {
+      "site": "Pelvis",
+      "mean": 0.6095926337106045,
+      "ci_lo": 0.5632832657726238,
+      "ci_hi": 0.6572914876109871,
+      "n": 21,
+      "metric": "calib_voxel",
+      "variant": "tejido_sano_dosis5",
+      "target": 0.6
+    },
+    {
+      "site": "Prostata",
+      "mean": 0.638075114698096,
+      "ci_lo": 0.5805195002221927,
+      "ci_hi": 0.6822923244772447,
+      "n": 21,
+      "metric": "calib_voxel",
+      "variant": "tejido_sano_dosis5",
+      "target": 0.6
+    },
+    {
+      "site": "CyC",
+      "mean": 0.48691382191576815,
+      "ci_lo": 0.36978921596422876,
+      "ci_hi": 0.6153883147195839,
+      "n": 23,
+      "metric": "calib_voxel",
+      "variant": "oars_union",
+      "target": 0.6
+    },
+    {
+      "site": "Pelvis",
+      "mean": 0.5241521030510511,
+      "ci_lo": 0.4311579051701622,
+      "ci_hi": 0.6170323521817748,
+      "n": 21,
+      "metric": "calib_voxel",
+      "variant": "oars_union",
+      "target": 0.6
+    },
+    {
+      "site": "Prostata",
+      "mean": 0.6206422113113185,
+      "ci_lo": 0.5387550744953343,
+      "ci_hi": 0.6889217285393856,
+      "n": 21,
+      "metric": "calib_voxel",
+      "variant": "oars_union",
+      "target": 0.6
+    }
+  ],
+  "ovh_percentil_por_sitio_primarios": [
+    {
+      "site": "CyC",
+      "mean": 52.78607435412727,
+      "ci_lo": 47.451742444700855,
+      "ci_hi": 57.98983880800989,
+      "n": 23,
+      "metric": "ovh_percentil_primarios_sitio",
+      "k": 10,
+      "target": 40.0
+    },
+    {
+      "site": "Pelvis",
+      "mean": 42.6984126984127,
+      "ci_lo": 35.23809523809524,
+      "ci_hi": 49.845238095238095,
+      "n": 21,
+      "metric": "ovh_percentil_primarios_sitio",
+      "k": 10,
+      "target": 40.0
+    },
+    {
+      "site": "Prostata",
+      "mean": 35.595238095238095,
+      "ci_lo": 27.49702380952381,
+      "ci_hi": 43.8125,
+      "n": 21,
+      "metric": "ovh_percentil_primarios_sitio",
+      "k": 10,
+      "target": 40.0
+    }
+  ],
+  "sanity_mae": null
+}

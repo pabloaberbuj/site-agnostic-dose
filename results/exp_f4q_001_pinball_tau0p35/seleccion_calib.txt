@@ -1,0 +1,6 @@
+== exp_f4q_001_pinball_tau0p35: calib voxel tejido sano, objetivo (1-tau_s) = 0.65; val/loss = monitor ==
+  ep96: val/loss 1.8317 | pooled 0.680 [0.637,0.722] | Prostata 0.660 [0.576,0.739] Pelvis 0.775 [0.735,0.810]* CyC 0.611 [0.534,0.690]
+  ep112: val/loss 1.8434 | pooled 0.548 [0.506,0.589] | Prostata 0.453 [0.376,0.530]* Pelvis 0.611 [0.555,0.664] CyC 0.578 [0.504,0.653]
+  ep114: val/loss 1.8582 | pooled 0.553 [0.511,0.595] | Prostata 0.538 [0.451,0.625]* Pelvis 0.576 [0.523,0.633]* CyC 0.545 [0.469,0.621]*
+  -> elegido (pooled mas cercana a 0.65): ep96; mejor-por-monitor: ep96  (coinciden)
+  (* = sitio a >0.10 del objetivo o con IC que no lo contiene: heterogeneidad entre sitios, revisar)
